@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- SESSION ID: 1499815988 -->
+<!-- SESSION ID: 1499816230 -->
 <launch>
 
   <!-- People tracking -->
@@ -22,3 +22,4 @@
 
   <!-- Visualization -->
   <include file="$(find opt_utils)/launch/multicamera_visualization.launch"/>
+</launch>

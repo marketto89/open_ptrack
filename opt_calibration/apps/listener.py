@@ -89,6 +89,9 @@ class Listener :
     else:
       file.write('  <group if="0">\n')
     file.write('  <!-- Object Tracking -->\n')
+    file.write('  <node pkg="opt_gui" type="opt_gui" name="opt_gui" output="screen">\n')
+    file.write('    <rosparam command="load" file="$(find opt_calibration)/conf/camera_network.yaml" />\n')
+    file.write('  </node>\n')
     file.write('  <include file="$(find tracking)/launch/object_tracker_network.launch" />\n')
     file.write('  </group>\n\n')
     file.write('  <!-- UDP messaging -->\n')
