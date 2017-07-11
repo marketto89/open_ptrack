@@ -95,6 +95,11 @@ class Listener :
     file.write('  <include file="$(find opt_utils)/launch/ros2udp_converter.launch"/>\n\n')
     file.write('  <!-- Visualization -->\n')
     file.write('  <include file="$(find opt_utils)/launch/multicamera_visualization.launch"/>\n')
+    file.write('</launch>\n')
+    file.close();
+    rospy.loginfo(file_name + ' created!');
+    
+    return (OPTSensorResponse.STATUS_OK, file_name + ' created!')
 
   def handle_create_sensor_launch(self, request):
     
