@@ -4,13 +4,6 @@
   <!-- Camera parameters -->
   <arg name="sensor_id"               default="" />
   <arg name="sensor_name"             default="kinect2" />
-
-  <!-- Launch sensor -->
-  <include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch">
-    <arg name="sensor_id"           value="$(arg sensor_id)" />
-    <arg name="sensor_name"         value="$(arg sensor_name)" />
-    <arg name="publish_frame"       value="true" />
-  </include>
 		  
   <!-- Launch ground based people detection node -->
    <node pkg="detection" type="multiple_objects_detection_node" name="multiple_objects_detection_$(arg sensor_name)" output="screen" required="true">

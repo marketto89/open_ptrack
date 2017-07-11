@@ -19,6 +19,9 @@ string ip
 string serial_left
 string serial_right
 
+bool enable_object
+bool enable_pose
+
 ---
 
 uint8 STATUS_OK=0

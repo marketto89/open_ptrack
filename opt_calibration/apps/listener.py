@@ -157,6 +157,7 @@ class Listener :
     return (OPTSensorResponse.STATUS_OK, file_name + ' created!')
     
   def handle_create_detector_launch(self, request) :
+
     file_name = self.detector_launchers_dir + 'detection_node_' + request.id + '.launch'
     file = open(file_name, 'w')
     file.write('<?xml version="1.0"?>\n')
@@ -164,6 +165,7 @@ class Listener :
     file.write('<launch>\n\n')
     
     file.write('  <!-- Sensor parameters -->\n')
+    file.write('    <include file="$(find opt_calibration)/launch/generated_enabling_patameters.launch" />\n\n')
     
     if request.type == OPTSensorRequest.TYPE_SR4500:
       file.write('  <arg name="camera_id"       default="' + request.id + '" />\n')
@@ -231,12 +233,26 @@ class Listener :
       file.write('  </include>\n\n')
 
       file.write('  <!-- Skeleton Detection node -->\n')
-      file.write('  <include file="$(find detection)/launch/skeleton_detector.launch">\n')
+      file.write('  <group if="' + self.enable_pose + '"" />')
+      file.write('    <include file="$(find detection)/launch/skeleton_detector.launch">\n')
       if request.serial != '':
-        file.write('    <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
-      file.write('    <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
-      file.write('    <arg name="ground_from_calibration" value="true" />\n')
-      file.write('  </include>\n\n')
+        file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
+      file.write('      <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
+      file.write('      <arg name="ground_from_calibration" value="true" />\n')
+      file.write('    </include>\n\n')
+      file.write('  </group>\n\n')
+
+      file.write('  <!-- Object Detection node -->\n')
+      file.write('  <group if="' + self.enable_object + '" />')
+      file.write('    <include file="$(find detection)/launch/object_detector.launch">\n')
+      if request.serial != '':
+        file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
+      file.write('      <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
+      file.write('    </include>\n\n')
+      file.write('  </group>\n\n')
+
+
+      file.write()
       
     file.write('</launch>\n')
     file.close();

@@ -6,12 +6,20 @@
   <!-- People tracking -->
   <include file="$(find tracking)/launch/tracker_network.launch"/>
   
-  <!-- Skeleton tracking -->
-  <include file="$(find tracking)/launch/skeleton_tracker_network.launch" />
+  <!-- generated params -->
+  <include file="$(find opt_calibration/conf/generated_enable_flags.launch" />
+
+      <!-- Skeleton tracking -->
+      <include file="$(find tracking)/launch/skeleton_tracker_network.launch" />
   
-  <!-- Pose recognition -->
-  <include file="$(find pose_recognition)/launch/pose_recognition.launch" />
+      <!-- Pose recognition -->
+      <include file="$(find pose_recognition)/launch/pose_recognition.launch" />
  
+  
+      <!-- Object Tracking -->
+      <include file="$(find tracking)/launch/object_tracker_network.launch" />
+      
+
   <!-- UDP messaging -->
   <include file="$(find opt_utils)/launch/ros2udp_converter.launch"/>
 
