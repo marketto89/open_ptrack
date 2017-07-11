@@ -2,9 +2,6 @@
 
   <!-- People tracking -->
   <include file="$(find tracking)/launch/tracker_network.launch"/>
-  
-  <!-- generated params -->
-  <include file="$(find opt_calibration/conf/generated_enable_flags.launch" />
 
   <!-- Skeleton tracking -->
   <include file="$(find tracking)/launch/skeleton_tracker_network.launch" />
