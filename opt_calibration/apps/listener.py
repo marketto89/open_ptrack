@@ -164,9 +164,6 @@ class Listener :
     file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
     file.write('<launch>\n\n')
     
-    file.write('  <!-- Sensor parameters -->\n')
-    file.write('    <include file="$(find opt_calibration)/launch/generated_enabling_patameters.launch" />\n\n')
-    
     if request.type == OPTSensorRequest.TYPE_SR4500:
       file.write('  <arg name="camera_id"       default="' + request.id + '" />\n')
       if request.ip == '':
@@ -234,9 +231,9 @@ class Listener :
 
       file.write('  <!-- Skeleton Detection node -->\n')
       if request.enable_pose:
-        file.write('<group if="1">\n')
+        file.write('  <group if="1">\n')
       else:
-        file.write('<group if="0">\n')
+        file.write('  <group if="0">\n')
       file.write('    <include file="$(find detection)/launch/skeleton_detector.launch">\n')
       if request.serial != '':
         file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
@@ -247,9 +244,9 @@ class Listener :
 
       file.write('  <!-- Object Detection node -->\n')
       if request.enable_object:
-        file.write('<group if="1">\n')
+        file.write('  <group if="1">\n')
       else:
-      	file.write('<group if="0">\n')
+      	file.write('  <group if="0">\n')
       file.write('    <include file="$(find detection)/launch/object_detector.launch">\n')
       if request.serial != '':
         file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
