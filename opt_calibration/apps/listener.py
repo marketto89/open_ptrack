@@ -57,13 +57,46 @@ class Listener :
     self.camera_poses_dir = rospy.get_param('~camera_poses_dir')
     if self.camera_poses_dir[len(self.camera_poses_dir) - 1] != '/':
       self.camera_poses_dir = self.camera_poses_dir + '/'
+
+    self.tracker_launchers_dir = rospy.get_param('~tracker_launchers_dir')
+    if self.tracker_launchers_dir[len(self.tracker_launchers_dir) - 1] != '/':
+      self.tracker_launchers_dir = self.tracker_launchers_dir + '/'
     
     self.create_sensor_launch_srv = rospy.Service('create_sensor_launch', OPTSensor, self.handle_create_sensor_launch)
     self.create_detector_launch_srv = rospy.Service('create_detector_launch', OPTSensor, self.handle_create_detector_launch)
+    self.create_tracking_launch_srv = rospy.Service('create_tracker_launch', OPTSensor, self.handle_create_tracker_launch)
     self.create_camera_poses_srv = rospy.Service('create_camera_poses', OPTTransform, self.handle_create_camera_poses)
     
-  
-  def handle_create_sensor_launch(self, request) :
+  def handle_create_tracker_launch(self, request):
+    file_name = self.tracker_launchers_dir + 'tracking_node.launch'
+    file = open(file_name, 'w')
+    file.write('<?xml version="1.0"?>\n')
+    file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
+    file.write('<launch>\n\n')
+    file.write('  <!-- People tracking -->\n')
+    file.write('  <include file="$(find tracking)/launch/tracker_network.launch"/>\n\n')
+    if request.enable_pose:
+      file.write('  <group if="1">\n')
+    else:
+      file.write('  <group if="0">\n')
+    file.write('  <!-- Skeleton tracking -->\n')
+    file.write('  <include file="$(find tracking)/launch/skeleton_tracker_network.launch" />\n')
+    file.write('  <!-- Pose recognition -->\n')
+    file.write('  <include file="$(find pose_recognition)/launch/pose_recognition.launch" />\n')
+    file.write('  </group>\n\n')
+    if request.enable_object:
+      file.write('  <group if="1">\n')
+    else:
+      file.write('  <group if="0">\n')
+    file.write('  <!-- Object Tracking -->\n')
+    file.write('  <include file="$(find tracking)/launch/object_tracker_network.launch" />\n')
+    file.write('  </group>\n\n')
+    file.write('  <!-- UDP messaging -->\n')
+    file.write('  <include file="$(find opt_utils)/launch/ros2udp_converter.launch"/>\n\n')
+    file.write('  <!-- Visualization -->\n')
+    file.write('  <include file="$(find opt_utils)/launch/multicamera_visualization.launch"/>\n')
+
+  def handle_create_sensor_launch(self, request):
     
     file_name = self.sensor_launchers_dir + 'sensor_' + request.id + '.launch'
     file = open(file_name, 'w')

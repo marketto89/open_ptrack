@@ -271,6 +271,9 @@ class CalibrationInitializer :
           
   def createDetectorLaunch(self) :
     self.__invokeService('create_detector_launch')
+
+  def createTrackerLaunch(self) :
+    self.__invokeService('create_tracker_launch')
     
 
 if __name__ == '__main__' :
@@ -287,6 +290,7 @@ if __name__ == '__main__' :
     
     initializer.createSensorLaunch()
     initializer.createDetectorLaunch()
+    initializer.createTrackerLaunch()
     
     rospy.loginfo('Initialization completed. Press [ctrl+c] to exit.')
     
