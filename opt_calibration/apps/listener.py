@@ -234,9 +234,9 @@ class Listener :
 
       file.write('  <!-- Skeleton Detection node -->\n')
       if request.enable_pose:
-        file.write('<group if=1>\n')
+        file.write('<group if="1">\n')
       else:
-        file.write('<group if=0>\n')
+        file.write('<group if="0">\n')
       file.write('    <include file="$(find detection)/launch/skeleton_detector.launch">\n')
       if request.serial != '':
         file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
@@ -247,9 +247,9 @@ class Listener :
 
       file.write('  <!-- Object Detection node -->\n')
       if request.enable_object:
-        file.write('<group if=1>\n')
+        file.write('<group if="1">\n')
       else:
-      	file.write('<group if=0>\n')
+      	file.write('<group if="0">\n')
       file.write('    <include file="$(find detection)/launch/object_detector.launch">\n')
       if request.serial != '':
         file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
