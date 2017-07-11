@@ -260,14 +260,10 @@ Tracker3D::createNewTrack(open_ptrack::detection::Detection& detection)
   t->init(detection.getWorldCentroid()(0), detection.getWorldCentroid()(1),detection.getWorldCentroid()(2),
           detection.getHeight(), detection.getDistance(), detection.getSource());
 
-  ROS_INFO_STREAM("3D init: " << *t);
-
   bool first_update = true;
   t->update(detection.getWorldCentroid()(0), detection.getWorldCentroid()(1), detection.getWorldCentroid()(2),
             detection.getHeight(), detection.getDistance(), 0.0,
             detection.getConfidence(), min_confidence_, min_confidence_detections_, detection.getSource(), first_update);
-
-  ROS_INFO_STREAM("3D update: " << *t);
 
   ROS_INFO("Created %d", t->getId());
 

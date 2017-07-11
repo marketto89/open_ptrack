@@ -46,17 +46,17 @@ namespace detection
 
 Eigen::Vector3d
 SkeletonDetection::averageOverValidJoints(
-    const std::vector<body_pose_msgs::Joint3DMsg>& joints)
+    const std::vector<rtpose_wrapper::Joint3DMsg>& joints)
 {
   Eigen::Vector3d v(0.0,0.0,0.0);
   auto acc_lambda = [](Eigen::Vector3d m,
-      const body_pose_msgs::Joint3DMsg& m1)
+      const rtpose_wrapper::Joint3DMsg& m1)
   {
     return std::isfinite(m1.x) and std::isfinite(m1.y) and std::isfinite(m1.z)?
           m + Eigen::Vector3d(m1.x,m1.y,m1.z):
           m;
   };
-  auto count_lambda = [](const body_pose_msgs::Joint3DMsg& m) {
+  auto count_lambda = [](const rtpose_wrapper::Joint3DMsg& m) {
     return not ((fabs(m.x) < 0.01 and fabs(m.y) < 0.01 and fabs(m.z) < 0.01)
                 or not (std::isfinite(m.x) and std::isfinite(m.y)
                         and std::isfinite(m.z))
@@ -73,7 +73,7 @@ SkeletonDetection::averageOverValidJoints(
 }
 
 bool
-SkeletonDetection::isValidJoint(const body_pose_msgs::Joint3DMsg& joint) const
+SkeletonDetection::isValidJoint(const rtpose_wrapper::Joint3DMsg& joint) const
 {
   return std::isfinite(joint.x)
        and std::isfinite(joint.y)
@@ -81,7 +81,7 @@ SkeletonDetection::isValidJoint(const body_pose_msgs::Joint3DMsg& joint) const
 }
 
 SkeletonDetection::SkeletonDetection
-(const body_pose_msgs::SkeletonMsg &detection,
+(const rtpose_wrapper::SkeletonMsg &detection,
  open_ptrack::detection::DetectionSource* source):
   Detection (opt_msgs::Detection(), source)
 {
@@ -111,12 +111,12 @@ SkeletonDetection::computeCentroid() const
 
   //  switch(detection_msg_.skeleton_type)
   //  {
-  //  case body_pose_msgs::SkeletonMsg::MPI: //MPI
+  //  case rtpose_wrapper::SkeletonMsg::MPI: //MPI
   //  {
   //    v = averageOverValidJoints(detection_msg_.joints);
   //    break;
   //  }
-  //  case body_pose_msgs::SkeletonMsg::COCO: //COCO
+  //  case rtpose_wrapper::SkeletonMsg::COCO: //COCO
   //  {
   //    // barycenter of joints 1, 8 and 11
   //    if(not isValidJoint(detection_msg_.joints[1])

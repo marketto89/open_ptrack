@@ -25,6 +25,13 @@ add_message_files(FILES
   PosePredictionResult.msg
   PoseRecognition.msg
   PoseRecognitionArray.msg
+  Image2D_roi.msg
+  Image2D_roi_array.msg
+  World3D_roi.msg
+  World3D_roi_array.msg
+  ObjectName.msg
+  ObjectNameArray.msg
+  Image2D_roi_file.msg
   )
 
 add_service_files(FILES OPTSensor.srv OPTTransform.srv)
@@ -41,5 +48,5 @@ catkin_package(
 include_directories(include include/open_ptrack/${PROJECT_NAME}/)
 
 add_library(roi_msgs src/overlap.cpp )
-add_dependencies(roi_msgs ${catkin_EXPORTED_TARGETS})
+add_dependencies(roi_msgs ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(roi_msgs ${catkin_LIBRARIES})

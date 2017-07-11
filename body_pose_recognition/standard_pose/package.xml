@@ -41,12 +41,12 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>body_pose_estimation</build_depend>
-  <build_depend>body_pose_msgs</build_depend>
+  <build_depend>rtpose_wrapper</build_depend>
   <build_depend>opt_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>roslib</build_depend>
   <run_depend>body_pose_estimation</run_depend>
-  <run_depend>body_pose_msgs</run_depend>
+  <run_depend>rtpose_wrapper</run_depend>
   <run_depend>opt_msgs</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>roslib</run_depend>

@@ -178,6 +178,14 @@ namespace open_ptrack
         getImage();
 
         /**
+         * \brief The object name
+         *
+         * \return the object name
+         */
+        std::string
+        getObjectName();
+
+        /**
          * \brief Set the confidence of the people detector associated to the detection.
          *
          * \param[in] confidence Confidence of the people detector associated to the detection.

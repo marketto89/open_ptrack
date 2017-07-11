@@ -15,3 +15,4 @@ uint8 visibility
 
 opt_msgs/BoundingBox2D box_2D
 
+string object_name

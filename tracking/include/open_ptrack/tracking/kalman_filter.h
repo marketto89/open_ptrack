@@ -310,44 +310,6 @@ public:
   virtual void
   setObserveModel (double position_variance);
 
-  friend std::ostream &operator<<(std::ostream &out, KalmanFilter& c)     //output
-  {
-    out << " depth_multiplier: \t" << c.depth_multiplier_ << std::endl;
-    out << " position_variance: \t" << c.position_variance_ << std::endl;
-    out << " acceleration_var: \t" << c.acceleration_variance_ << std::endl;
-    out << " output_dimension: \t" << c.output_dimension_ << std::endl;
-    out << " unscented_filter: \t" << *(c.filter_) << std::endl;
-    out << " observation_model: \n\t\tHx:[ ";
-    for(size_t i = 0; i < 4; ++i)
-    {
-      for(size_t j = 0; j < 4; ++j)
-        out << c.observe_model_->Hx(i,j) << " ";
-      out << std::endl << "\t\t     ";
-    }
-    out << " ], Zv: [ ";
-    for(size_t i = 0; i < 4; ++i)
-      out << c.observe_model_->Zv(i) << " ";
-    out << " ]";
-    out << " prediction_model: \n\t\tFx:[ ";
-    for(size_t i = 0; i < 4; ++i)
-    {
-      for(size_t j = 0; j < 4; ++j)
-        out << c.predict_model_->Fx(i,j) << " ";
-      out << "\n\t\t     ";
-    }
-    out << " ], G:[ ";
-    for (size_t i = 0; i < 4; ++i)
-    {
-      for(size_t j = 0; j < 2; ++j)
-        out << c.predict_model_->G(i,j) << " ";
-      out << "\n\t\t      ";
-    }
-    out << " ], q:[ " << c.predict_model_->q(0) << " "
-        << c.predict_model_->q(1) <<
-           " ]" << std::endl;
-    return out;
-  }
-
 };
 } /* namespace tracking */
 } /* namespace open_ptrack */

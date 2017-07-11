@@ -5,7 +5,6 @@ add_definitions(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   body_pose_estimation
-  body_pose_msgs
   opt_msgs
   roscpp
   roslib
@@ -14,7 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES standard_pose
-  CATKIN_DEPENDS body_pose_estimation body_pose_msgs opt_msgs roscpp roslib
+  CATKIN_DEPENDS body_pose_estimation opt_msgs roscpp roslib
   #  DEPENDS system_lib
   )
 

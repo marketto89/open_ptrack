@@ -46,7 +46,7 @@ namespace open_ptrack
 namespace tracking
 {
 
-Tracker_object::Tracker_object(
+TrackerObject::TrackerObject(
     double gate_distance,
     bool detector_likelihood,
     std::vector<double> likelihood_weights,
@@ -83,13 +83,13 @@ Tracker_object::Tracker_object(
   tracks_counter_ = 0;
 }
 
-Tracker_object::~Tracker_object()
+TrackerObject::~TrackerObject()
 {
   // TODO Auto-generated destructor stub
 }
 
 void
-Tracker_object::newFrame(const std::vector<open_ptrack::detection::Detection>& detections)
+TrackerObject::newFrame(const std::vector<open_ptrack::detection::Detection>& detections)
 {
   detections_.clear();
   unassociated_detections_.clear();
@@ -98,12 +98,12 @@ Tracker_object::newFrame(const std::vector<open_ptrack::detection::Detection>& d
   detections_ = detections;
   ros::Time current_detections_time = detections_[0].getSource()->getTime();
 
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end();)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end();)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
     bool deleted = false;
 
-    if(((t->getVisibility() == Track_object::NOT_VISIBLE && (t->getSecFromLastHighConfidenceDetection(current_detections_time)) >= sec_before_old_)
+    if(((t->getVisibility() == TrackObject::NOT_VISIBLE && (t->getSecFromLastHighConfidenceDetection(current_detections_time)) >= sec_before_old_)
         || (!t->isValidated() && t->getSecFromFirstDetection(current_detections_time) >= sec_before_fake_)))
     {
       if (debug_mode_)
@@ -122,9 +122,9 @@ Tracker_object::newFrame(const std::vector<open_ptrack::detection::Detection>& d
         std::cout << "Track " << t->getId() << " VALIDATED" << std::endl;
       }
     }
-    else if(t->getStatus() == Track_object::NEW && t->getSecFromFirstDetection(current_detections_time) >= sec_remain_new_)
+    else if(t->getStatus() == TrackObject::NEW && t->getSecFromFirstDetection(current_detections_time) >= sec_remain_new_)
     {
-      t->setStatus(Track_object::NORMAL);
+      t->setStatus(TrackObject::NORMAL);
       if (debug_mode_)
       {
         std::cout << "Track " << t->getId() << " set to NORMAL" << std::endl;
@@ -133,9 +133,9 @@ Tracker_object::newFrame(const std::vector<open_ptrack::detection::Detection>& d
 
     if(!deleted)
     {
-      if(t->getStatus() == Track_object::NEW && t->getVisibility() == Track_object::VISIBLE)
+      if(t->getStatus() == TrackObject::NEW && t->getVisibility() == TrackObject::VISIBLE)
         new_tracks_.push_back(t);
-      if(t->getVisibility() == Track_object::NOT_VISIBLE)
+      if(t->getVisibility() == TrackObject::NOT_VISIBLE)
         lost_tracks_.push_back(t);
       it++;
     }
@@ -143,7 +143,7 @@ Tracker_object::newFrame(const std::vector<open_ptrack::detection::Detection>& d
 }
 
 void
-Tracker_object::updateTracks()
+TrackerObject::updateTracks()
 {
   createDistanceMatrix();
   createCostMatrix();
@@ -158,28 +158,24 @@ Tracker_object::updateTracks()
   createNewTracks();
 }
 
-//    void Tracker_object::drawRgb()
-//    {
-//      for(std::list<open_ptrack::tracking::Track*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
-//        (*it)->draw(vertical_);
-//    }
-
 void
-Tracker_object::toMarkerArray(visualization_msgs::MarkerArray::Ptr& msg)
+TrackerObject::toMarkerArray(visualization_msgs::MarkerArray::Ptr& msg)
 {
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it =
+      tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
     t->createMarker(msg);
   }
 }
 
 void
-Tracker_object::toMsg(opt_msgs::TrackArray::Ptr& msg)
+TrackerObject::toMsg(opt_msgs::TrackArray::Ptr& msg)
 {
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it =
+      tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
 
     opt_msgs::Track track;
     t->toMsg(track, vertical_);
@@ -188,12 +184,15 @@ Tracker_object::toMsg(opt_msgs::TrackArray::Ptr& msg)
 }
 
 void
-Tracker_object::toMsg(opt_msgs::TrackArray::Ptr& msg, std::string& source_frame_id)
+TrackerObject::toMsg(opt_msgs::TrackArray::Ptr& msg,
+                      std::string& source_frame_id)
 {
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it =
+      tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
-    if (strcmp(t->getDetectionSource()->getFrameId().c_str(), source_frame_id.c_str()) == 0) // if strings are equal
+    open_ptrack::tracking::TrackObject* t = *it;
+    if (strcmp(t->getDetectionSource()->getFrameId().c_str(),
+               source_frame_id.c_str()) == 0) // if strings are equal
     {
       opt_msgs::Track track;
       t->toMsg(track, vertical_);
@@ -213,14 +212,14 @@ Tracker_object::toMsg(opt_msgs::TrackArray::Ptr& msg, std::string& source_frame_
 
 
 void
-Tracker_object::to_object_name_Msg(opt_msgs::ObjectNameArray::Ptr& msg)
+TrackerObject::to_object_name_Msg(opt_msgs::ObjectNameArray::Ptr& msg)
 {
   if(association_for_initialize_objectnames_.size()==tracks_.size())
   {
     int index=0;
-    for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+    for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
     {
-      open_ptrack::tracking::Track_object* t = *it;
+      open_ptrack::tracking::TrackObject* t = *it;
       opt_msgs::ObjectName object_name_msg;
       object_name_msg.object_name=t->object_name_;
       object_name_msg.no=association_for_initialize_objectnames_[index];
@@ -235,18 +234,18 @@ Tracker_object::to_object_name_Msg(opt_msgs::ObjectNameArray::Ptr& msg)
 
 
 void
-Tracker_object::getAliveIDs (opt_msgs::IDArray::Ptr& msg)
+TrackerObject::getAliveIDs (opt_msgs::IDArray::Ptr& msg)
 {
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
     msg->ids.push_back ((*it)->getId());
   }
   msg->max_ID = tracks_counter_;
 }
 
 size_t
-Tracker_object::appendToPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& pointcloud, size_t starting_index, size_t max_size)
+TrackerObject::appendToPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& pointcloud, size_t starting_index, size_t max_size)
 {
   for(size_t i = 0; i < tracks_.size() && pointcloud->size() < max_size; i++)
   {
@@ -254,9 +253,9 @@ Tracker_object::appendToPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& point
     pointcloud->push_back(point);
   }
 
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
     if(t->getPointXYZRGB(pointcloud->points[starting_index]))
       starting_index = (starting_index + 1) % max_size;
 
@@ -267,13 +266,13 @@ Tracker_object::appendToPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& point
 /************************ protected methods ************************/
 
 int
-Tracker_object::createNewTrack(open_ptrack::detection::Detection& detection)
+TrackerObject::createNewTrack(open_ptrack::detection::Detection& detection)
 {
   if(detection.getConfidence() < min_confidence_)
     return -1;
 
-  open_ptrack::tracking::Track_object* t;
-  t = new open_ptrack::tracking::Track_object(
+  open_ptrack::tracking::TrackObject* t;
+  t = new open_ptrack::tracking::TrackObject(
         ++tracks_counter_,
         world_frame_id_,
         position_variance_,
@@ -296,14 +295,14 @@ Tracker_object::createNewTrack(open_ptrack::detection::Detection& detection)
 }
 
 void
-Tracker_object::createDistanceMatrix()
+TrackerObject::createDistanceMatrix()
 {
   distance_matrix_ = cv::Mat_<double>(tracks_.size(), detections_.size());
   int track = 0;
-  for(std::list<Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
   {
     //double x, y, height, vx, vz;
-    Track_object* t = *it;
+    TrackObject* t = *it;
     //t->predict(x, y, height, vx, vz);
     int measure = 0;
     for(std::vector<open_ptrack::detection::Detection>::iterator dit = detections_.begin(); dit != detections_.end(); dit++)
@@ -362,7 +361,7 @@ Tracker_object::createDistanceMatrix()
 }
 
 void
-Tracker_object::createCostMatrix()
+TrackerObject::createCostMatrix()
 {
   cost_matrix_ = distance_matrix_.clone();
   for(int i = 0; i < distance_matrix_.rows; i++)
@@ -389,7 +388,7 @@ Tracker_object::createCostMatrix()
 }
 
 void
-Tracker_object::updateDetectedTracks()
+TrackerObject::updateDetectedTracks()
 {
   //      	std::cout << "Munkres output matrix:" << std::endl;
   //      	for(int row = 0; row < cost_matrix_.rows; row++) {
@@ -403,10 +402,10 @@ Tracker_object::updateDetectedTracks()
 
   // Iterate over every track:
   int track = 0;
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
   {
     bool updated = false;
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
 
     for(int measure = 0; measure < cost_matrix_.cols; measure++)
     {
@@ -433,7 +432,7 @@ Tracker_object::updateDetectedTracks()
                       d.getConfidence(), min_confidence_, min_confidence_detections_,
                       d.getSource(), first_update);
 
-          t->setVisibility(d.isOccluded() ? Track_object::OCCLUDED : Track_object::VISIBLE);
+          t->setVisibility(d.isOccluded() ? TrackObject::OCCLUDED : TrackObject::VISIBLE);
           updated = true;
           break;
         }
@@ -445,9 +444,9 @@ Tracker_object::updateDetectedTracks()
     }
     if(!updated)
     {
-      if(t->getVisibility() != Track_object::NOT_VISIBLE)
+      if(t->getVisibility() != TrackObject::NOT_VISIBLE)
       {
-        t->setVisibility(Track_object::NOT_VISIBLE);
+        t->setVisibility(TrackObject::NOT_VISIBLE);
         //t->update();
       }
     }
@@ -457,7 +456,7 @@ Tracker_object::updateDetectedTracks()
 }
 
 void
-Tracker_object::fillUnassociatedDetections()
+TrackerObject::fillUnassociatedDetections()
 {
   // Fill a list with detections not associated to any track:
   if(cost_matrix_.cols == 0 && detections_.size() > 0)
@@ -488,14 +487,14 @@ Tracker_object::fillUnassociatedDetections()
 }
 
 void
-Tracker_object::updateLostTracks()
+TrackerObject::updateLostTracks()
 {
   //for(std::list<open_ptrack::tracking::Track*>::iterator it = lost_tracks_.begin(); it != lost_tracks_.end(); it++)
   //	(*it)->update();
 }
 
 void
-Tracker_object::createNewTracks()
+TrackerObject::createNewTracks()
 {
   for(std::list<open_ptrack::detection::Detection>::iterator dit = unassociated_detections_.begin();
       dit != unassociated_detections_.end(); dit++)
@@ -505,91 +504,91 @@ Tracker_object::createNewTracks()
 }
 
 void
-Tracker_object::setMinConfidenceForTrackInitialization (double min_confidence)
+TrackerObject::setMinConfidenceForTrackInitialization (double min_confidence)
 {
   min_confidence_ = min_confidence;
 }
 
 void
-Tracker_object::setSecBeforeOld (double sec_before_old)
+TrackerObject::setSecBeforeOld (double sec_before_old)
 {
   sec_before_old_ = sec_before_old;
 }
 
 void
-Tracker_object::setSecBeforeFake (double sec_before_fake)
+TrackerObject::setSecBeforeFake (double sec_before_fake)
 {
   sec_before_fake_ = sec_before_fake;
 }
 
 void
-Tracker_object::setSecRemainNew (double sec_remain_new)
+TrackerObject::setSecRemainNew (double sec_remain_new)
 {
   sec_remain_new_ = sec_remain_new;
 }
 
 void
-Tracker_object::setDetectionsToValidate (int detections_to_validate)
+TrackerObject::setDetectionsToValidate (int detections_to_validate)
 {
   detections_to_validate_ = detections_to_validate;
 }
 
 void
-Tracker_object::setDetectorLikelihood (bool detector_likelihood)
+TrackerObject::setDetectorLikelihood (bool detector_likelihood)
 {
   detector_likelihood_ = detector_likelihood;
 }
 
 void
-Tracker_object::setLikelihoodWeights (double detector_weight, double motion_weight)
+TrackerObject::setLikelihoodWeights (double detector_weight, double motion_weight)
 {
   likelihood_weights_[0] = detector_weight;
   likelihood_weights_[1] = motion_weight;
 }
 
 void
-Tracker_object::setVelocityInMotionTerm (bool velocity_in_motion_term, double acceleration_variance, double position_variance)
+TrackerObject::setVelocityInMotionTerm (bool velocity_in_motion_term, double acceleration_variance, double position_variance)
 {
   velocity_in_motion_term_ = velocity_in_motion_term;
   acceleration_variance_ = acceleration_variance;
   position_variance_ = position_variance;
 
   // Update all existing tracks:
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
     t->setVelocityInMotionTerm (velocity_in_motion_term_, acceleration_variance_, position_variance_);
   }
 }
 
 void
-Tracker_object::setAccelerationVariance (double acceleration_variance)
+TrackerObject::setAccelerationVariance (double acceleration_variance)
 {
   acceleration_variance_ = acceleration_variance;
 
   // Update all existing tracks:
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
     t->setAccelerationVariance (acceleration_variance_);
   }
 }
 
 void
-Tracker_object::setPositionVariance (double position_variance)
+TrackerObject::setPositionVariance (double position_variance)
 {
   position_variance_ = position_variance;
 
   // Update all existing tracks:
-  for(std::list<open_ptrack::tracking::Track_object*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
+  for(std::list<open_ptrack::tracking::TrackObject*>::iterator it = tracks_.begin(); it != tracks_.end(); it++)
   {
-    open_ptrack::tracking::Track_object* t = *it;
+    open_ptrack::tracking::TrackObject* t = *it;
     t->setPositionVariance (position_variance_);
   }
 }
 
 void
-Tracker_object::setGateDistance (double gate_distance)
+TrackerObject::setGateDistance (double gate_distance)
 {
   gate_distance_ = gate_distance;
 }

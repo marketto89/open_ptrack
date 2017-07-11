@@ -62,8 +62,8 @@
 #include <opt_msgs/SkeletonTrackArray.h>
 #include <opt_msgs/StandardSkeletonTrackArray.h>
 #include <opt_msgs/IDArray.h>
-#include <body_pose_msgs/SkeletonMsg.h>
-#include <body_pose_msgs/SkeletonArrayMsg.h>
+#include <rtpose_wrapper/SkeletonMsg.h>
+#include <rtpose_wrapper/SkeletonArrayMsg.h>
 #include <body_pose_recognition/standardpose.h>
 //#include <open_ptrack/opt_utils/ImageConverter.h>
 
@@ -391,7 +391,7 @@ readMatrixFromFile (const std::string& filename)
  * \param[in] msg the DetectionArray message.
  */
 void
-detection_cb(const body_pose_msgs::SkeletonArrayMsg::ConstPtr& msg)
+detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
 {
   // Read message header information:
   std::string frame_id = msg->header.frame_id;
@@ -471,7 +471,7 @@ detection_cb(const body_pose_msgs::SkeletonArrayMsg::ConstPtr& msg)
     // Create a SkeletonDetection object
     // for every skeleton in the detection message:
     std::vector<open_ptrack::detection::SkeletonDetection> detections_vector;
-    for(std::vector<body_pose_msgs::SkeletonMsg>::const_iterator
+    for(std::vector<rtpose_wrapper::SkeletonMsg>::const_iterator
         it = msg->skeletons.begin(), end = msg->skeletons.end();
         it != end; it++)
     {

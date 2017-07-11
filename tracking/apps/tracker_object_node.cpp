@@ -101,7 +101,7 @@ tf::Transform camera_frame_to_world_transform;
 tf::Transform world_to_camera_frame_transform;
 bool extrinsic_calibration;
 double period;
-open_ptrack::tracking::Tracker_object* tracker_object;
+open_ptrack::tracking::TrackerObject* tracker_object;
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr history_pointcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr detection_history_pointcloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 bool swissranger;
@@ -754,7 +754,7 @@ main(int argc, char** argv)
 //  cv::namedWindow("TRACKER ", CV_WINDOW_NORMAL);
 
   // Initialize an instance of the Tracker object:
-  tracker_object = new open_ptrack::tracking::Tracker_object(
+  tracker_object = new open_ptrack::tracking::TrackerObject(
       gate_distance,
       detector_likelihood,
       likelihood_weights,

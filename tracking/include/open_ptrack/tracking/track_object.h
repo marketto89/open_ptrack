@@ -57,7 +57,7 @@ namespace open_ptrack
   namespace tracking
   {
     /** \brief Track represents information about a track (or target) */
-    class Track_object
+    class TrackObject
     {
       public:
 
@@ -167,7 +167,7 @@ namespace open_ptrack
       public:
 
         /** \brief Constructor. */
-        Track_object(
+        TrackObject(
             int id,
             std::string frame_id,
             double position_variance,
@@ -176,11 +176,11 @@ namespace open_ptrack
             bool velocity_in_motion_term);
 
         /** \brief Destructor. */
-        virtual ~Track_object();
+        virtual ~TrackObject();
 
         /** \brief Track initialization with an old track. */
         void
-        init(const Track_object& old_track);
+        init(const TrackObject& old_track);
 
         /**
          * \brief Track initialization.
@@ -367,7 +367,7 @@ namespace open_ptrack
          * \param[in] vertical States if the camera is vertically oriented (true) or not (false).
          */
         void
-        toMsg(opt_msgs::Track& track_msg, bool vertical);
+        toMsg(opt_msgs::Track &track_msg, bool vertical);
 
         /**
          * \brief Get the DetectionSource corresponding to the last associated detection.

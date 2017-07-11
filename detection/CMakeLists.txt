@@ -33,7 +33,7 @@ if (NOT PCL_FOUND)
 endif (NOT PCL_FOUND)
 
 # Dynamic reconfigure support
-generate_dynamic_reconfigure_options(cfg/HaarDispAdaDetector.cfg cfg/GroundBasedPeopleDetector.cfg cfg/multiple_objects_detection.cfg))
+generate_dynamic_reconfigure_options(cfg/HaarDispAdaDetector.cfg cfg/GroundBasedPeopleDetector.cfg cfg/multiple_objects_detection.cfg)
 
 include_directories(cfg/cpp)
 

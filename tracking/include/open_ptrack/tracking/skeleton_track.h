@@ -69,11 +69,11 @@ class SkeletonTrack : public Track
 {
 private:
   bool
-  isValid(const body_pose_msgs::Joint3DMsg& joint);
+  isValid(const rtpose_wrapper::Joint3DMsg& joint);
 protected:
 
   std::vector<Track3D*> joint_tracks_;
-  std::vector<body_pose_msgs::Joint3DMsg> raw_joints_tmp_;
+  std::vector<rtpose_wrapper::Joint3DMsg> raw_joints_tmp_;
   bool all_joint_tracks_initialized_;
 
   static int count;
@@ -86,13 +86,13 @@ public:
                 std::string frame_id, double position_variance,
                 double acceleration_variance, double period,
                 bool velocity_in_motion_term,
-                const std::vector<body_pose_msgs::Joint3DMsg>& joints);
+                const std::vector<rtpose_wrapper::Joint3DMsg>& joints);
 
   /** \brief Destructor. */
   virtual ~SkeletonTrack();
 
   bool
-  anyNaNs(const std::vector<body_pose_msgs::Joint3DMsg>& joints);
+  anyNaNs(const std::vector<rtpose_wrapper::Joint3DMsg>& joints);
 
   void
   update(double x,
@@ -104,7 +104,7 @@ public:
          double min_confidence,
          double min_confidence_detections,
          open_ptrack::detection::DetectionSource* detection_source,
-         const std::vector<body_pose_msgs::Joint3DMsg>& joints,
+         const std::vector<rtpose_wrapper::Joint3DMsg>& joints,
          bool first_update = false);
 
   void
@@ -119,7 +119,7 @@ public:
   void
   init(double x, double y, double z, double height, double distance,
        open_ptrack::detection::DetectionSource* detection_source,
-       const std::vector<body_pose_msgs::Joint3DMsg>& joints);
+       const std::vector<rtpose_wrapper::Joint3DMsg>& joints);
 
   void
   createMarker(visualization_msgs::MarkerArray::Ptr& msg);
@@ -131,7 +131,7 @@ public:
   bodyPoseMsgToTrackerMsg(opt_msgs::SkeletonTrack &msg);
 
   static void
-  bodyPoseMsgToMarker(const std::vector<body_pose_msgs::Joint3DMsg>& joints,
+  bodyPoseMsgToMarker(const std::vector<rtpose_wrapper::Joint3DMsg>& joints,
                       visualization_msgs::Marker &msg);
 
   bool

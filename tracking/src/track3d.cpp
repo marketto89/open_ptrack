@@ -653,12 +653,15 @@ Track3D::getState(double &x, double &y, double &z)
   filter_->getState(x, y, z);
 }
 
-body_pose_msgs::Joint3DMsg
-Track3D::getState ()
+geometry_msgs::Point
+Track3D::getState()
 {
-  body_pose_msgs::Joint3DMsg j;
-  filter_->getState(j.x, j.y, j.z);
-  return j;
+  geometry_msgs::Point p;
+
+  filter_->getState(p.x, p.y, p.z);
+
+  return p;
 }
+
 } /* namespace tracking */
 } /* namespace open_ptrack */

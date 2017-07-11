@@ -130,6 +130,12 @@ namespace open_ptrack
       return source_->getImage();
     }
 
+    std::string
+    Detection::getObjectName()
+    {
+      return detection_msg_.object_name;
+    }
+
     void
     Detection::setConfidence(double confidence)
     {

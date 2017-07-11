@@ -5,11 +5,11 @@
     This package provides body_pose_estimation capability.
   </description>
   <maintainer email="carraromarco89@gmail.com">Marco Carraro</maintainer>
-  <license>GPLv3</license>
+  <license>BSD</license>
 
   <build_depend>catkin</build_depend>
-
-  <depend>body_pose_msgs</depend>
+  
+  <depend>opt_msgs</depend>
 
   <export>
     <cpp cflags="-I${prefix}/msg/cpp"/>

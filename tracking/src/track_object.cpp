@@ -46,7 +46,7 @@ namespace open_ptrack
 namespace tracking
 {
 
-Track_object::Track_object(
+TrackObject::TrackObject(
     int id,
     std::string frame_id,
     double position_variance,
@@ -79,14 +79,14 @@ Track_object::Track_object(
 
 }
 
-Track_object::~Track_object()
+TrackObject::~TrackObject()
 {
   delete filter_;
   delete tmp_filter_;
 }
 
 void
-Track_object::init(const Track_object& old_track)
+TrackObject::init(const TrackObject& old_track)
 {
   double x, y;
   old_track.filter_->getState(x, y);
@@ -122,7 +122,7 @@ Track_object::init(const Track_object& old_track)
 
 
 void
-Track_object::init(double x, double y, double z, double height, double distance,std::string object_name,
+TrackObject::init(double x, double y, double z, double height, double distance,std::string object_name,
                    open_ptrack::detection::DetectionSource* detection_source)
 {
   //Init Kalman filter
@@ -144,7 +144,7 @@ Track_object::init(double x, double y, double z, double height, double distance,
 }
 
 void
-Track_object::update(
+TrackObject::update(
     double x,
     double y,
     double z,
@@ -246,79 +246,79 @@ Track_object::update(
 }
 
 void
-Track_object::validate()
+TrackObject::validate()
 {
   validated_ = true;
 }
 
 bool
-Track_object::isValidated()
+TrackObject::isValidated()
 {
   return validated_;
 }
 
 int
-Track_object::getId()
+TrackObject::getId()
 {
   return id_;
 }
 
 void
-Track_object::setStatus(Track_object::Status s)
+TrackObject::setStatus(TrackObject::Status s)
 {
   status_ = s;
 }
 
-Track_object::Status
-Track_object::getStatus()
+TrackObject::Status
+TrackObject::getStatus()
 {
   return status_;
 }
 
 void
-Track_object::setVisibility(Track_object::Visibility v)
+TrackObject::setVisibility(TrackObject::Visibility v)
 {
   visibility_ = v;
 }
 
-Track_object::Visibility
-Track_object::getVisibility()
+TrackObject::Visibility
+TrackObject::getVisibility()
 {
   return visibility_;
 }
 
 float
-Track_object::getSecFromFirstDetection(ros::Time current_time)
+TrackObject::getSecFromFirstDetection(ros::Time current_time)
 {
   return (current_time - first_time_detected_).toSec();
 }
 
 float
-Track_object::getSecFromLastDetection(ros::Time current_time)
+TrackObject::getSecFromLastDetection(ros::Time current_time)
 {
   return (current_time - last_time_detected_).toSec();
 }
 
 float
-Track_object::getSecFromLastHighConfidenceDetection(ros::Time current_time)
+TrackObject::getSecFromLastHighConfidenceDetection(ros::Time current_time)
 {
   return (current_time - last_time_detected_with_high_confidence_).toSec();
 }
 
 float
-Track_object::getLowConfidenceConsecutiveFrames()
+TrackObject::getLowConfidenceConsecutiveFrames()
 {
   return low_confidence_consecutive_frames_;
 }
 
 int
-Track_object::getUpdatesWithEnoughConfidence()
+TrackObject::getUpdatesWithEnoughConfidence()
 {
   return updates_with_enough_confidence_;
 }
 
 double
-Track_object::getMahalanobisDistance(double x, double y, const ros::Time& when)
+TrackObject::getMahalanobisDistance(double x, double y, const ros::Time& when)
 {
   int difference = int(round((when - last_time_predicted_).toSec() / period_));
   //      std::cout << "time difference from last detection: " << difference << std::endl;
@@ -383,7 +383,7 @@ Track_object::getMahalanobisDistance(double x, double y, const ros::Time& when)
 }
 
 void
-Track_object::draw(bool vertical)
+TrackObject::draw(bool vertical)
 {
   cv::Scalar color(int(255.0 * color_(0)), int(255.0 * color_(1)), int(255.0 * color_(2)));
 
@@ -392,7 +392,7 @@ Track_object::draw(bool vertical)
   Eigen::Vector3d centroid2(_x2, _y2, z_);
   centroid2 = detection_source_->transformToCam(centroid2);
 
-  if(visibility_ == Track_object::NOT_VISIBLE)
+  if(visibility_ == TrackObject::NOT_VISIBLE)
     return;
 
   double _x, _y;
@@ -472,9 +472,9 @@ Track_object::draw(bool vertical)
 }
 
 void
-Track_object::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
+TrackObject::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
 {
-  if(visibility_ == Track_object::NOT_VISIBLE)
+  if(visibility_ == TrackObject::NOT_VISIBLE)
     return;
 
   double _x, _y;
@@ -555,9 +555,9 @@ Track_object::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
 }
 
 bool
-Track_object::getPointXYZRGB(pcl::PointXYZRGB& p)
+TrackObject::getPointXYZRGB(pcl::PointXYZRGB& p)
 {
-  if(visibility_ == Track_object::NOT_VISIBLE)
+  if(visibility_ == TrackObject::NOT_VISIBLE)
     return false;
 
   double _x, _y;
@@ -574,7 +574,7 @@ Track_object::getPointXYZRGB(pcl::PointXYZRGB& p)
 }
 
 void
-Track_object::toMsg(opt_msgs::Track& track_msg, bool vertical)
+TrackObject::toMsg(opt_msgs::Track &track_msg, bool vertical)
 {
 
   double _x, _y;
@@ -611,13 +611,13 @@ Track_object::toMsg(opt_msgs::Track& track_msg, bool vertical)
 }
 
 open_ptrack::detection::DetectionSource*
-Track_object::getDetectionSource()
+TrackObject::getDetectionSource()
 {
   return detection_source_;
 }
 
 void
-Track_object::setVelocityInMotionTerm (bool velocity_in_motion_term, double acceleration_variance, double position_variance)
+TrackObject::setVelocityInMotionTerm (bool velocity_in_motion_term, double acceleration_variance, double position_variance)
 {
   velocity_in_motion_term_ = velocity_in_motion_term;
 
@@ -632,14 +632,14 @@ Track_object::setVelocityInMotionTerm (bool velocity_in_motion_term, double acce
 }
 
 void
-Track_object::setAccelerationVariance (double acceleration_variance)
+TrackObject::setAccelerationVariance (double acceleration_variance)
 {
   filter_->setPredictModel (acceleration_variance);
   tmp_filter_->setPredictModel (acceleration_variance);
 }
 
 void
-Track_object::setPositionVariance (double position_variance)
+TrackObject::setPositionVariance (double position_variance)
 {
   filter_->setObserveModel (position_variance);
   tmp_filter_->setObserveModel (position_variance);

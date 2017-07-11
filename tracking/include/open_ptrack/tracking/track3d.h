@@ -51,7 +51,6 @@
 #include <open_ptrack/bayes/bayesFlt.hpp>
 #include <open_ptrack/detection/detection_source.h>
 #include <opt_msgs/Track3D.h>
-#include <body_pose_msgs/Joint3DMsg.h>
 
 namespace open_ptrack
 {
@@ -400,14 +399,9 @@ namespace open_ptrack
         virtual void
         getState (double& x, double& y, double& z);
 
-        virtual body_pose_msgs::Joint3DMsg
-        getState ();
+        geometry_msgs::Point
+        getState();
 
-        friend std::ostream&
-        operator<< (std::ostream& out, Track3D& t)
-        {
-          return out << *(t.filter_);
-        }
     };
 
   } /* namespace tracking */

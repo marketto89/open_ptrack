@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   cmake_modules
-  body_pose_msgs
+  opt_msgs
 )
 find_package(CUDA REQUIRED)
 find_package(OpenCV REQUIRED)

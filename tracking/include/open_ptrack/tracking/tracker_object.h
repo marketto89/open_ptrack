@@ -54,17 +54,17 @@ namespace open_ptrack
 namespace tracking
 {
 /** \brief Tracker performs tracking-by-detection */
-class Tracker_object
+class TrackerObject
 {
 protected:
     /** \brief List of all active tracks */
-    std::list<open_ptrack::tracking::Track_object*> tracks_;
+    std::list<open_ptrack::tracking::TrackObject*> tracks_;
 
     /** \brief List of lost tracks */
-    std::list<open_ptrack::tracking::Track_object*> lost_tracks_;
+    std::list<open_ptrack::tracking::TrackObject*> lost_tracks_;
 
     /** \brief List of tracks with Status = NEW */
-    std::list<open_ptrack::tracking::Track_object*> new_tracks_;
+    std::list<open_ptrack::tracking::TrackObject*> new_tracks_;
 
     /** \brief List of current detections */
     std::vector<open_ptrack::detection::Detection> detections_;
@@ -165,13 +165,13 @@ public:
 
 public:
     /** \brief Constructor */
-    Tracker_object(double gate_distance, bool detector_likelihood, std::vector<double> likelihood_weights, bool velocity_in_motion_term,
+    TrackerObject(double gate_distance, bool detector_likelihood, std::vector<double> likelihood_weights, bool velocity_in_motion_term,
             double min_confidence, double min_confidence_detections, double sec_before_old, double sec_before_fake,
             double sec_remain_new, int detections_to_validate, double period, double position_variance,
             double acceleration_variance, std::string world_frame_id, bool debug_mode, bool vertical);
 
     /** \brief Destructor */
-    virtual ~Tracker_object();
+    virtual ~TrackerObject();
 
     /**
          * \brief Initialization when a new set of detections arrive.

@@ -52,6 +52,8 @@ add_library(${PROJECT_NAME}
   src/tracker3d.cpp
   src/skeleton_tracker.cpp
   src/skeleton_track.cpp
+  src/track_object.cpp
+  src/tracker_object.cpp
   )
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 

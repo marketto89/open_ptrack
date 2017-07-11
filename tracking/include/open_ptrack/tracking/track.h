@@ -396,11 +396,6 @@ namespace open_ptrack
         virtual void
         setPositionVariance (double position_variance);
 
-        friend std::ostream&
-        operator<< (std::ostream& out, Track& t)
-        {
-          return out << *(t.filter_);
-        }
     };
 
   } /* namespace tracking */
