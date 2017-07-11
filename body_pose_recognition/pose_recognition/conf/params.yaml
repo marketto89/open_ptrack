@@ -1,0 +1,25 @@
+############################################################################
+# flag that states how to fuse limb scores to obtain the skeleton similarity score
+# 0 = average between the scores
+# 1 = worst score selected as the fused one
+per_skeleton_score_fusion_policy: 1
+
+############################################################################
+# flag that states how to fuse scores between skeleton of the same gallery pose
+# 0 = best match = the best frame score considered as the final one
+# 1 = average match = average between the frame scores
+# 2 = median match = median between the frame scores
+per_gallery_pose_score_fusion_policy: 1
+
+############################################################################
+# flags fr enabling limbs in the recognition score computation
+# false = limb will not be used
+# true = limb will be used
+use_right_leg: true
+use_left_leg: true
+use_right_arm: true
+use_left_arm: true
+
+############################################################################
+# Threshold to decide whether to accept the pose as the predicted one or no
+recognition_threshold: 1.5
