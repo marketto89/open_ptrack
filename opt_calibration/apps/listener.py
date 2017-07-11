@@ -250,9 +250,6 @@ class Listener :
       file.write('      <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
       file.write('    </include>\n\n')
       file.write('  </group>\n\n')
-
-
-      file.write()
       
     file.write('</launch>\n')
     file.close();
