@@ -9,6 +9,7 @@ Panels:
         - /PointCloud21
         - /MarkerArray1
         - /MarkerArray1/Namespaces1
+        - /TF1
         - /TF1/Frames1
         - /MarkerArray4
         - /MarkerArray4/Namespaces1
@@ -90,11 +91,7 @@ Visualization Manager:
       Marker Topic: /tracker/skeleton_markers_array
       Name: MarkerArray
       Namespaces:
-        joints_raw: true
-        joints_valid: true
-        links_raw: true
-        links_valid: true
-        numbers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/TF
@@ -105,39 +102,31 @@ Visualization Manager:
         kinect_boxxx:
           Value: true
         kinect_boxxx_ir_frame:
-          Value: true
+          Value: false
         kinect_boxxx_ir_optical_frame:
-          Value: true
+          Value: false
         kinect_boxxx_link:
-          Value: true
+          Value: false
         kinect_boxxx_rgb_frame:
-          Value: true
+          Value: false
         kinect_boxxx_rgb_optical_frame:
-          Value: true
+          Value: false
         kinect_master:
           Value: true
         kinect_master_ir_frame:
-          Value: true
+          Value: false
         kinect_master_ir_optical_frame:
-          Value: true
+          Value: false
         kinect_master_link:
-          Value: true
+          Value: false
         kinect_master_rgb_frame:
-          Value: true
+          Value: false
         kinect_master_rgb_optical_frame:
-          Value: true
+          Value: false
         kinect_sager:
           Value: true
-        kinect_sager_ir_frame:
-          Value: true
-        kinect_sager_ir_optical_frame:
-          Value: true
         kinect_sager_link:
-          Value: true
-        kinect_sager_rgb_frame:
-          Value: true
-        kinect_sager_rgb_optical_frame:
-          Value: true
+          Value: false
         world:
           Value: true
       Marker Scale: 1
@@ -165,12 +154,7 @@ Visualization Manager:
                   {}
           kinect_sager:
             kinect_sager_link:
-              kinect_sager_ir_frame:
-                kinect_sager_ir_optical_frame:
-                  {}
-              kinect_sager_rgb_frame:
-                kinect_sager_rgb_optical_frame:
-                  {}
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz/MarkerArray
@@ -186,8 +170,7 @@ Visualization Manager:
       Marker Topic: /tracker/markers_array
       Name: MarkerArray
       Namespaces:
-        numbers: true
-        people: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -195,11 +178,7 @@ Visualization Manager:
       Marker Topic: /tracker/skeleton_markers_array
       Name: MarkerArray
       Namespaces:
-        joints_raw: true
-        joints_valid: true
-        links_raw: true
-        links_valid: true
-        numbers: true
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -207,10 +186,7 @@ Visualization Manager:
       Marker Topic: /tracker/standard_skeleton_markers
       Name: MarkerArray
       Namespaces:
-        joints_norm: false
-        links_norm: false
-        orientation_angle: false
-        orientation_vectors: false
+        {}
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -253,7 +229,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.7147
+      Distance: 7.34239
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -265,10 +241,10 @@ Visualization Manager:
         Z: 0.107659
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.71791
+      Pitch: 0.56791
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.49937
+      Yaw: 5.20937
     Saved: ~
 Window Geometry:
   Displays:

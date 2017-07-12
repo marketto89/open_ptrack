@@ -73,6 +73,10 @@ class Listener :
     file.write('<?xml version="1.0"?>\n')
     file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
     file.write('<launch>\n\n')
+    if request.enable_people_tracking:
+      file.write('  <arg name="enable_people_tracking" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_people_tracking" default="false" />\n')
     if request.enable_pose:
       file.write('  <arg name="enable_pose" default="true" />\n')
     else:
@@ -83,8 +87,11 @@ class Listener :
       file.write('  <arg name="enable_object" default="false" />\n')
     file.write('  <!-- Load calibration results -->\n')
     file.write('  <include file="$(find opt_calibration)/launch/opt_calibration_results.launch"/>\n\n')
+    file.write('  <group if="$(arg enable_people_tracking)"\n\n')
+
     file.write('  <!-- People tracking -->\n')
     file.write('  <include file="$(find tracking)/launch/tracker_network.launch"/>\n\n')
+    file.write('  </group>\n\n')
     file.write('  <group if="$(arg enable_pose)">\n')
     file.write('  <!-- Skeleton tracking -->\n')
     file.write('  <include file="$(find tracking)/launch/skeleton_tracker_network.launch" />\n')
@@ -208,6 +215,10 @@ class Listener :
     file.write('<?xml version="1.0"?>\n')
     file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
     file.write('<launch>\n\n')
+    if request.enable_people_tracking:
+      file.write('  <arg name="enable_people_tracking" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_people_tracking" default="false" />\n')
     if request.enable_pose:
       file.write('  <arg name="enable_pose" default="true" />\n')
     else:
@@ -272,6 +283,7 @@ class Listener :
       file.write('  <arg name="sensor_name" default="' + request.id + '" />\n\n')
       
       file.write('  <!-- Detection node -->\n')
+      file.write('  <group if="$(arg enable_people_tracking)" />\n')
       file.write('  <include file="$(find detection)/launch/detector_kinect2.launch">\n')
       if request.serial != '':
         file.write('    <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
@@ -280,7 +292,8 @@ class Listener :
         file.write('    <arg name="rgb_camera_info_url"     value="file://$(find opt_calibration)/camera_info/rgb_$(arg sensor_name).yaml" />\n')
       file.write('    <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
       file.write('    <arg name="ground_from_calibration" value="true" />\n')
-      file.write('  </include>\n\n')
+      file.write('  </include>\n')
+      file.write('  </group>\n\n')
 
       file.write('  <!-- Skeleton Detection node -->\n')
       file.write('  <group if="$(arg enable_pose)">\n')

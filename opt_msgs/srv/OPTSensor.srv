@@ -19,6 +19,7 @@ string ip
 string serial_left
 string serial_right
 
+bool enable_people_tracking
 bool enable_object
 bool enable_pose
 
