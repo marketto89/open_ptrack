@@ -5,7 +5,7 @@
 output_detection_topic: /objects_detector/detections
 
 #if you want to see the tracks result on the image, set show_2D_track to true
-show_2D_track: true
+show_2D_track: false #true
 
 
 ###########For choose on which camera to set the object names###########
