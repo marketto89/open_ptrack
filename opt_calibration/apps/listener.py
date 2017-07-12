@@ -289,7 +289,7 @@ class Listener :
       file.write('  <arg name="sensor_name" default="' + request.id + '" />\n\n')
       
       file.write('  <!-- Detection node -->\n')
-      file.write('  <group if="$(arg enable_people_tracking)" />\n')
+      file.write('  <group if="$(arg enable_people_tracking)" >\n')
       file.write('  <include file="$(find detection)/launch/detector_kinect2.launch">\n')
       if request.serial != '':
         file.write('    <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
