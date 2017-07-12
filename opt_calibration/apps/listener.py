@@ -282,7 +282,8 @@ class Listener :
       file.write('  <arg name="sensor_name" default="' + request.id + '" />\n\n')
       file.write('  <!-- Launch the sensor -->\n')
       file.write('  <include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch">\n')
-      file.write('    <arg name="sensor_id"           value="$(arg sensor_id)" />\n')
+      if request.serial != '':
+        file.write('  <arg name="sensor_id"           value="$(arg sensor_id)" />\n')
       file.write('    <arg name="sensor_name"         value="$(arg sensor_name)" />\n')
       file.write('    <arg name="publish_frame"       value="true" />\n')
       file.write('  </include>\n\n')
