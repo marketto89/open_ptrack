@@ -73,23 +73,25 @@ class Listener :
     file.write('<?xml version="1.0"?>\n')
     file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
     file.write('<launch>\n\n')
+    if request.enable_pose:
+      file.write('  <arg name="enable_pose" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_pose" default="false" />\n')
+    if request.enable_object:
+      file.write('  <arg name="enable_object" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_object" default="false" />\n')
     file.write('  <!-- Load calibration results -->\n')
     file.write('  <include file="$(find opt_calibration)/launch/opt_calibration_results.launch"/>\n\n')
     file.write('  <!-- People tracking -->\n')
     file.write('  <include file="$(find tracking)/launch/tracker_network.launch"/>\n\n')
-    if request.enable_pose:
-      file.write('  <group if="1">\n')
-    else:
-      file.write('  <group if="0">\n')
+    file.write('  <group if="$(arg enable_pose)">\n')
     file.write('  <!-- Skeleton tracking -->\n')
     file.write('  <include file="$(find tracking)/launch/skeleton_tracker_network.launch" />\n')
     file.write('  <!-- Pose recognition -->\n')
     file.write('  <include file="$(find pose_recognition)/launch/pose_recognition.launch" />\n')
     file.write('  </group>\n\n')
-    if request.enable_object:
-      file.write('  <group if="1">\n')
-    else:
-      file.write('  <group if="0">\n')
+    file.write('  <group if="$(arg enable_object)">\n')
     file.write('  <!-- Object Tracking -->\n')
     file.write('  <node pkg="opt_gui" type="opt_gui" name="opt_gui" output="screen">\n')
     file.write('    <rosparam command="load" file="$(find opt_calibration)/conf/camera_network.yaml" />\n')
@@ -206,6 +208,14 @@ class Listener :
     file.write('<?xml version="1.0"?>\n')
     file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
     file.write('<launch>\n\n')
+    if request.enable_pose:
+      file.write('  <arg name="enable_pose" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_pose" default="false" />\n')
+    if request.enable_object:
+      file.write('  <arg name="enable_object" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_object" default="false" />\n')
     
     if request.type == OPTSensorRequest.TYPE_SR4500:
       file.write('  <arg name="camera_id"       default="' + request.id + '" />\n')
@@ -273,10 +283,7 @@ class Listener :
       file.write('  </include>\n\n')
 
       file.write('  <!-- Skeleton Detection node -->\n')
-      if request.enable_pose:
-        file.write('  <group if="1">\n')
-      else:
-        file.write('  <group if="0">\n')
+      file.write('  <group if="$(arg enable_pose)">\n')
       file.write('    <include file="$(find detection)/launch/skeleton_detector.launch">\n')
       if request.serial != '':
         file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
@@ -286,10 +293,7 @@ class Listener :
       file.write('  </group>\n\n')
 
       file.write('  <!-- Object Detection node -->\n')
-      if request.enable_object:
-        file.write('  <group if="1">\n')
-      else:
-      	file.write('  <group if="0">\n')
+      file.write('  <group if="$(arg enable_object)">\n')
       file.write('    <include file="$(find detection)/launch/object_detector.launch">\n')
       if request.serial != '':
         file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')

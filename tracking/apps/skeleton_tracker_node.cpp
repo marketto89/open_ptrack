@@ -559,8 +559,6 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
         tracking_results_msg->header.stamp = frame_time;
         tracking_results_msg->header.frame_id = world_frame_id;
         tracker->toMsg(tracking_results_msg);
-        std::cout << "Skeletons: " << tracking_results_msg->tracks.size() << std::endl;
-        std::cout << "Joint per skel: " << tracking_results_msg->tracks[0].joints.size() << std::endl;
         // Publish tracking message:
         results_pub.publish(tracking_results_msg);
         // Publish standard skeleton tracks (if needed)
