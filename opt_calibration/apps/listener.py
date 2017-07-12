@@ -73,6 +73,8 @@ class Listener :
     file.write('<?xml version="1.0"?>\n')
     file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
     file.write('<launch>\n\n')
+    file.write('  <!-- Load calibration results -->\n')
+    file.write('  <include file="$(find opt_calibration)/launch/opt_calibration_results.launch"/>\n\n')
     file.write('  <!-- People tracking -->\n')
     file.write('  <include file="$(find tracking)/launch/tracker_network.launch"/>\n\n')
     if request.enable_pose:
