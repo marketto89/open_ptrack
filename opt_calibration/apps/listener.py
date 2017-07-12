@@ -89,7 +89,7 @@ class Listener :
     file.write('  <include file="$(find opt_calibration)/launch/opt_calibration_results.launch"/>\n\n')
     file.write('  <!-- Launch the tracking node -->\n')
     file.write('  <node pkg="tracking" type="tracker" name="tracker_node" output="screen">\n')
-    file.write('    <remap from="~input" to="$(arg input_topic)" />\n')
+    file.write('    <remap from="~input" to="/detector/detections" />\n')
     file.write('    <rosparam command="load" file="$(find tracking)/conf/tracker_multicamera.yaml" />\n') 
     file.write('    <rosparam command="load" file="$(find detection)/conf/haar_disp_ada_detector.yaml" />\n')
     file.write('    <rosparam command="load" file="$(find opt_calibration)/conf/camera_network.yaml" />\n') 
