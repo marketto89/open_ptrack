@@ -203,6 +203,24 @@ Visualization Manager:
         {}
       Queue Size: 100
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /tracker/object_markers_array_smoothed
+      Name: MarkerArray
+      Namespaces:
+        numbers: true
+        people: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /tracker/object_markers
+      Name: Marker
+      Namespaces:
+        numbers: true
+        people: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -239,10 +257,10 @@ Visualization Manager:
         Z: 0.107659
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.83791
+      Pitch: 0.72791
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.421195
+      Yaw: 5.49937
     Saved: ~
 Window Geometry:
   Displays:
