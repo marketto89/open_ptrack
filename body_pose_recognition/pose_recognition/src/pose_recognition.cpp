@@ -9,6 +9,21 @@ namespace bpr
 typedef bpe::SkeletonJoints SkeletonJoints;
 typedef bpe::SkeletonLinks SkeletonLinks;
 
+template<typename A, typename B>
+std::pair<B,A> flip_pair(const std::pair<A,B> &p)
+{
+    return std::pair<B,A>(p.second, p.first);
+}
+
+template<typename A, typename B>
+std::map<B,A> flip_map(const std::map<A,B> &src)
+{
+    std::map<B,A> dst;
+    std::transform(src.begin(), src.end(), std::inserter(dst, dst.begin()),
+                   flip_pair<A,B>);
+    return dst;
+}
+
 std::istream& operator>>(std::istream& str, FileRow& data)
 {
   data.readNextRow(str);
@@ -164,11 +179,11 @@ PoseRecognition::skeletonCallback
       }
       case 2: // median match
       {
-        uint median_id = m_per_frame_scores.size() / 2;
+        uint median_id = m_per_frame_scores[pose_id].size() / 2;
         std::nth_element(
-              m_per_frame_scores.begin(),
-              m_per_frame_scores.begin() + median_id,
-              m_per_frame_scores.end());
+              m_per_frame_scores[pose_id].begin(),
+              m_per_frame_scores[pose_id].begin() + median_id,
+              m_per_frame_scores[pose_id].end());
         m_final_scores[pose_id] = m_per_frame_scores[pose_id][median_id];
         break;
       }
@@ -178,13 +193,14 @@ PoseRecognition::skeletonCallback
     opt_msgs::PoseRecognition recognition_msg;
     recognition_msg.header = data->header;
     recognition_msg.gallery_poses.resize(m_final_scores.size());
-    std::vector<size_t> indexes = sort_indexes(m_final_scores);
+    // sort m_final_scores based on the second field
+    std::map<double, size_t> dst = flip_map(m_final_scores); // no multimap because the probably that two scores are the same is really low
     opt_msgs::PosePredictionResult max_pr;
-    if (m_final_scores[indexes[0]] < m_threshold)
+    if ((dst.begin())->first < m_threshold)
     {
-      max_pr.pose_id = indexes[0];
-      max_pr.pose_name = m_gallery_poses_names[indexes[0]];
-      max_pr.score = m_final_scores[indexes[0]];
+      max_pr.pose_id = dst.begin()->second;
+      max_pr.pose_name = m_gallery_poses_names[dst.begin()->second];
+      max_pr.score = dst.begin()->first;
     }
     else
     {
@@ -193,14 +209,14 @@ PoseRecognition::skeletonCallback
       max_pr.score = -1;
     }
     recognition_msg.best_prediction_result = max_pr;
-    for(uint pose_id = 0, end_pose_id = m_final_scores.size();
-        pose_id != end_pose_id; ++pose_id)
+    for(auto it = dst.begin(), end = dst.end();
+        it != end; ++it)
     {
       opt_msgs::PosePredictionResult pr;
-      pr.pose_id = indexes[pose_id];
-      pr.pose_name = m_gallery_poses_names[indexes[pose_id]];
-      pr.score = m_final_scores[indexes[pose_id]];
-      recognition_msg.gallery_poses[pose_id] = pr;
+      pr.pose_id = it->second;
+      pr.pose_name = m_gallery_poses_names[it->second];
+      pr.score = it->first;
+      recognition_msg.gallery_poses[it->second] = pr;
     }
     recognition_array_msg.poses.push_back(recognition_msg);
     // visualization marker output
@@ -283,10 +299,10 @@ PoseRecognition::readGalleryPoses()
 
   FileRow row(',');
   poses_file >> row;
-  m_gallery_poses_names.resize(std::atoi(row[0].c_str()));
-  m_gallery_poses.resize(m_gallery_poses_names.size());
-  m_per_frame_scores.resize(m_gallery_poses.size());
-  m_final_scores.resize(m_gallery_poses.size());
+//  m_gallery_poses_names.resize(std::atoi(row[0].c_str()));
+//  m_gallery_poses.resize(m_gallery_poses_names.size());
+//  m_per_frame_scores.resize(m_gallery_poses.size());
+//  m_final_scores.resize(m_gallery_poses.size());
   //  std::vector<std::string> dirs_to_read(m_gallery_poses_names.size());
   //  std::vector<std::string> frames_to_read(m_gallery_poses_names.size());
   while(poses_file >> row)
@@ -294,9 +310,21 @@ PoseRecognition::readGalleryPoses()
     const uint pose_id = std::atoi(row[0].c_str());
     const uint n_frames = std::atoi(row[1].c_str());
     const std::string& pose_name = row[2];
-    m_gallery_poses[pose_id].resize(n_frames);
+    // check if exists and if there are frames
+    std::stringstream ss;
+    ss << ros::package::getPath("gallery_poses") << "/data/" << pose_id;
+    boost::filesystem::path p{ss.str()};
+    if(not boost::filesystem::is_directory(p)) continue;
+    size_t are_there_any_frames = std::count_if(
+          boost::filesystem::directory_iterator(p),
+          boost::filesystem::directory_iterator(),
+          static_cast<bool(*)(const boost::filesystem::path&)>
+          (boost::filesystem::is_regular_file));
+    if(are_there_any_frames == 0) continue;
+    m_gallery_poses[pose_id] =
+        std::vector<SkeletonMatrix>(are_there_any_frames / 2);
     m_gallery_poses_names[pose_id] = pose_name;
-    m_per_frame_scores[pose_id].resize(n_frames);
+    m_per_frame_scores[pose_id] = std::vector<double>(are_there_any_frames / 2);
     readMatricesForSinglePose(pose_id);
   }
 }
@@ -322,7 +350,8 @@ PoseRecognition::readMatricesForSinglePose(const uint pose_id)
       std::ifstream matrix_file(ss2.str());
       if (not matrix_file.good())
       {
-        throw std::runtime_error(ss2.str() + " not found! Check your gallery_poses");
+        throw std::runtime_error(ss2.str()
+                                 + " not found! Check your gallery_poses");
       }
       FileRow row(' ');
       for (uint r = 0; r < 3; ++r)

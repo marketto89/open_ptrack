@@ -37,7 +37,10 @@ def record_frame():
                 os.makedirs(frame_dir)
             except OSError as e:
                 if e.errno != errno.EEXIST:
-                    raise  # raises the error again
+                    raise
+                else:
+                    os.rmdir(frame_dir)
+                    os.makedirs(frame_dir)
     else:
         csv_file = open(gallery_dir + "/poses.csv", "r+")
         content = csv_file.readlines()
@@ -57,7 +60,8 @@ def record_frame():
                 os.makedirs(frame_dir)
             except OSError as e:
                 if e.errno != errno.EEXIST:
-                    raise  # raises the error again
+                    raise
+            # read number of frames in the correct folder
             content[line_id][1] = str(frame_id + 1)
             content = [",".join(line) + "\n" for line in content]
             # read num_frame and register a new one with num_frame as ID
@@ -81,6 +85,13 @@ def record_frame():
         csv_file.close()
     # write the new frame_id (and the stickman)
     frame_file = open(frame_dir + "/frame_" + str(frame_id) + ".txt", "w")
+    for r in xrange(median.shape[0]):
+        line = str(median[r,0])
+        for c in xrange(1, median.shape[1]):
+            line += " " + str(median[r,c])
+        line += "\n"
+        frame_file.write(line)
+    frame_file.close()
     stickman = np.zeros((300, 300, 1), dtype = "uint8")
     old_min = np.min(median, axis=1)
     old_max = np.max(median, axis=1)
@@ -90,17 +101,9 @@ def record_frame():
     new_diff = new_max - new_min
     # cv2.line(img, pt1, pt2, color[, thickness[, lineType[, shift]]]) 
     # frame
-    for r in xrange(median.shape[0]):
-        line = str(median[r,0])
-        for c in xrange(1, median.shape[1]):
-            line += " " + str(median[r,c])
-        line += "\n"
-        frame_file.write(line)
-    frame_file.close()
     # stickman
     points = ((median.transpose() - old_min) / old_diff * new_diff + new_min).transpose()
     matr_rot_z = np.matrix("0 -1 0; 1 0 0; 0 0 1")
-    matr_rot_y = np.matrix("1 0 0; 0 0 -1; 0 1 0")
     matr_rot_x = np.matrix("0 0 1; 0 1 0; -1 0 0")
     points = (points.transpose() * matr_rot_x * np.linalg.inv(matr_rot_z) ).transpose()
     points -= (points[:,14].transpose() - (150,150,0)).transpose()
@@ -122,7 +125,7 @@ def record_frame():
     # cv2.imshow("stickman",stickman)
     stickman = cv2.flip(stickman, 1)
     cv2.imwrite(frame_dir + "/frame_" + str(frame_id) + ".jpg", stickman)
-    print ("Record!")
+    print ("Recorded!")
     end_node = True
 
 def reset():
@@ -165,19 +168,12 @@ def callback(data):
         reset()
         return
     valid_skeletons += 1
-    # print ("Validskel:" + str(valid_skeletons) + " / " + str(min_valid_skeletons))
     # check pose
     norms = np.zeros(len(skeleton.joints))
     if not len(skeletons) == 0:
         for i in xrange(skeleton_matrix.shape[1]):
-            # print str(i) + " / " + str(skeleton_matrix.shape[1])
             if i not in joints_to_consider_by_index: continue
-            # print ("Joint:" + str(i) + ": " + str(skeleton_matrix[:,i]))
-            # print ("median: " + str(median[:,i]))
             norms[i] = np.linalg.norm(median[:,i] - skeleton_matrix[:,i])
-        # print ("Joints: " + str(skeleton_matrix))
-        # print ("mean: " + str(mean))
-        # print ("norms: " + str(norms))
         if np.any(norms > per_joint_valid_pose_threshold):
             print ("Not valid pose!")
             soft_reset()

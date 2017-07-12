@@ -75,10 +75,10 @@ private:
   ros::NodeHandle m_nh;
   ros::NodeHandle m_private_nh;
   ros::Subscriber m_subscriber;
-  std::vector<std::vector<SkeletonMatrix>> m_gallery_poses;
-  std::vector<std::string> m_gallery_poses_names;
-  std::vector<std::vector<double>> m_per_frame_scores;
-  std::vector<double> m_final_scores;
+  std::map<size_t, std::vector<SkeletonMatrix>> m_gallery_poses;
+  std::map<size_t, std::string> m_gallery_poses_names;
+  std::map<size_t, std::vector<double>> m_per_frame_scores;
+  std::map<size_t, double> m_final_scores;
   bool m_use_right_leg, m_use_right_arm, m_use_left_leg, m_use_left_arm;
   // how to fuse scores from the different body parts in a unique one
   uint m_per_skeleton_score_fusion_policy;
@@ -91,21 +91,7 @@ private:
   readGalleryPoses();
   void
   skeletonCallback(const opt_msgs::StandardSkeletonTrackArrayConstPtr &data);
-  void
-  readMatricesForSinglePose(const uint pose_id);
-  template <typename T>
-  std::vector<size_t> sort_indexes(const std::vector<T> &v) {
-
-    // initialize original index locations
-    std::vector<size_t> idx(v.size());
-    std::iota(idx.begin(), idx.end(), 0);
-
-    // sort indexes based on comparing values in v
-    std::sort(idx.begin(), idx.end(),
-         [&v](size_t i1, size_t i2) {return v[i1] < v[i2];});
-
-    return idx;
-  }
+  void readMatricesForSinglePose(const uint pose_id);
 };
 
 } // bpr
