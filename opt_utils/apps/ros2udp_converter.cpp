@@ -132,7 +132,7 @@ synchronizedCallback(
 
     tracks.Add(current_track);
   }
-  root.Add("persons", tracks);
+  root.Add("pose_tracks", tracks);
 
   /// Convert JSON object to string:
   Jzon::Format message_format = Jzon::StandardFormat;

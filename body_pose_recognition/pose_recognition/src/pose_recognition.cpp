@@ -12,16 +12,16 @@ typedef bpe::SkeletonLinks SkeletonLinks;
 template<typename A, typename B>
 std::pair<B,A> flip_pair(const std::pair<A,B> &p)
 {
-    return std::pair<B,A>(p.second, p.first);
+  return std::pair<B,A>(p.second, p.first);
 }
 
 template<typename A, typename B>
 std::map<B,A> flip_map(const std::map<A,B> &src)
 {
-    std::map<B,A> dst;
-    std::transform(src.begin(), src.end(), std::inserter(dst, dst.begin()),
-                   flip_pair<A,B>);
-    return dst;
+  std::map<B,A> dst;
+  std::transform(src.begin(), src.end(), std::inserter(dst, dst.begin()),
+                 flip_pair<A,B>);
+  return dst;
 }
 
 std::istream& operator>>(std::istream& str, FileRow& data)
@@ -31,7 +31,10 @@ std::istream& operator>>(std::istream& str, FileRow& data)
 }
 
 PoseRecognition::PoseRecognition():
-  m_private_nh("~")
+  m_private_nh("~"),
+  m_sk_sub(m_nh, "/tracker/skeleton_tracks", 10),
+  m_st_sk_sub(m_nh, "/tracker/standard_skeleton_tracks", 10),
+  m_sync(MySyncPolicy(10),  m_st_sk_sub, m_sk_sub)
 {
   m_use_left_arm = m_private_nh.param("use_left_arm", true);
   m_use_left_leg = m_private_nh.param("use_left_leg", true);
@@ -48,19 +51,24 @@ PoseRecognition::PoseRecognition():
   m_publisher = m_nh.advertise<opt_msgs::PoseRecognitionArray>
       ("/recognizer/poses", 1);
   readGalleryPoses();
-  m_subscriber = m_nh.subscribe<opt_msgs::StandardSkeletonTrackArray>
-      ("/tracker/standard_skeleton_tracks", 1,
-       &PoseRecognition::skeletonCallback, this);
   m_rviz_publisher = m_nh.advertise<visualization_msgs::MarkerArray>
+      ("/recognizer/markers_debug", 1);
+  m_rviz2_publisher = m_nh.advertise<visualization_msgs::MarkerArray>
       ("/recognizer/markers", 1);
+  m_sync.registerCallback(boost::bind(&PoseRecognition::skeletonCallback,
+                                      this, _1, _2));
 }
 
 void
 PoseRecognition::skeletonCallback
-(const opt_msgs::StandardSkeletonTrackArrayConstPtr &data)
+(const opt_msgs::StandardSkeletonTrackArrayConstPtr &standard_data,
+ const opt_msgs::SkeletonTrackArrayConstPtr &data)
 {
-  opt_msgs::PoseRecognitionArray recognition_array_msg;
-  for (auto& sk : data->tracks)
+  opt_msgs::PoseRecognitionArray debug_recognition_array_msg;
+  visualization_msgs::MarkerArray predicted_pose_marker, marker_array;
+
+  uint skel_id = 0;
+  for (auto& sk : standard_data->tracks)
   {
     // sk already in standard pose
     Eigen::Matrix<double, 6, 1> r_arm;
@@ -191,10 +199,10 @@ PoseRecognition::skeletonCallback
     } // for pose_id
     // result
     opt_msgs::PoseRecognition recognition_msg;
-    recognition_msg.header = data->header;
+    recognition_msg.header = standard_data->header;
     recognition_msg.gallery_poses.resize(m_final_scores.size());
     // sort m_final_scores based on the second field
-    std::map<double, size_t> dst = flip_map(m_final_scores); // no multimap because the probably that two scores are the same is really low
+    std::map<double, size_t> dst = flip_map(m_final_scores); // no multimap because the probability that two scores are the same is really low
     opt_msgs::PosePredictionResult max_pr;
     if ((dst.begin())->first < m_threshold)
     {
@@ -218,73 +226,97 @@ PoseRecognition::skeletonCallback
       pr.score = it->first;
       recognition_msg.gallery_poses[it->second] = pr;
     }
-    recognition_array_msg.poses.push_back(recognition_msg);
+    debug_recognition_array_msg.poses.push_back(recognition_msg);
     // visualization marker output
-    visualization_msgs::MarkerArray marker_array;
     ros::Time time = ros::Time::now();
-    for(size_t i = 0, end = recognition_array_msg.poses.size(); i != end; ++i)
+    auto& sk2 = data->tracks[skel_id];
+    visualization_msgs::Marker text_pose_name;
+    text_pose_name.header.frame_id = "world";
+    text_pose_name.header.stamp = time;
+    text_pose_name.ns = "pose_recognition";
+    text_pose_name.id = skel_id;
+    text_pose_name.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+    text_pose_name.action = visualization_msgs::Marker::ADD;
+    std::stringstream ss;
+    ss << recognition_msg.best_prediction_result.pose_name;
+    text_pose_name.text = ss.str();
+    text_pose_name.pose.position.x = sk2.joints[SkeletonJoints::CHEST].x;
+    text_pose_name.pose.position.y = sk2.joints[SkeletonJoints::CHEST].y;
+    text_pose_name.pose.position.z = sk2.joints[SkeletonJoints::CHEST].z + 1.0;
+    text_pose_name.scale.x = 0.34;
+    text_pose_name.scale.y = 0.34;
+    text_pose_name.scale.z = 0.34;
+    text_pose_name.pose.orientation.x = 0.0;
+    text_pose_name.pose.orientation.y = 0.0;
+    text_pose_name.pose.orientation.z = 0.0;
+    text_pose_name.pose.orientation.w = 1.0;
+    text_pose_name.color.r = 1.0;
+    text_pose_name.color.a = 1.0;
+    predicted_pose_marker.markers.push_back(text_pose_name);
+    for(size_t k = 0, end_k = recognition_msg.gallery_poses.size();
+        k != end_k; ++k)
     {
-      const opt_msgs::PoseRecognition& pr = recognition_array_msg.poses[i];
-      for(size_t k = 0, end_k = pr.gallery_poses.size(); k != end_k; ++k)
+      const opt_msgs::PosePredictionResult& ppr =
+          recognition_msg.gallery_poses[k];
+      visualization_msgs::Marker text_pose_id;
+      visualization_msgs::Marker text_pose_score;
+      text_pose_id.header.frame_id = "world";
+      text_pose_id.header.stamp = time;
+      text_pose_score.header = text_pose_id.header;
+      text_pose_score.ns = "recognition_score";
+      text_pose_id.ns = "recognition_id";
+      text_pose_score.id = text_pose_id.id = k + skel_id * standard_data->tracks.size();
+      text_pose_score.type = text_pose_id.type =
+          visualization_msgs::Marker::TEXT_VIEW_FACING;
+      text_pose_score.action = text_pose_id.action =
+          visualization_msgs::Marker::ADD;
+      std::stringstream ss;
+      ss << ppr.pose_name;
+      text_pose_id.text = ss.str();
+      std::stringstream ss2;
+      ss2 << ppr.score;
+      text_pose_score.text = ss2.str();
+      text_pose_score.pose.position.x = 0.0;
+      text_pose_score.pose.position.y = 0.0;
+      text_pose_score.pose.position.z = (k + 1) * 1.0;
+      text_pose_score.pose.orientation.x = 0.0;
+      text_pose_score.pose.orientation.y = 0.0;
+      text_pose_score.pose.orientation.z = 0.0;
+      text_pose_score.pose.orientation.w = 1.0;
+      text_pose_id.pose = text_pose_score.pose;
+      text_pose_id.pose.position.x += 2.0;
+      text_pose_score.scale.x = 0.34;
+      text_pose_score.scale.y = 0.34;
+      text_pose_score.scale.z = 0.34;
+      if (k == 0 and ppr.score < m_threshold)
       {
-        const opt_msgs::PosePredictionResult& ppr = pr.gallery_poses[k];
-        visualization_msgs::Marker text_pose_id;
-        visualization_msgs::Marker text_pose_score;
-        text_pose_id.header.frame_id = "world";
-        text_pose_id.header.stamp = time;
-        text_pose_score.header = text_pose_id.header;
-        text_pose_score.ns = "recognition_score";
-        text_pose_id.ns = "recognition_id";
-        text_pose_score.id = text_pose_id.id = k + i * end;
-        text_pose_score.type = text_pose_id.type =
-            visualization_msgs::Marker::TEXT_VIEW_FACING;
-        text_pose_score.action = text_pose_id.action =
-            visualization_msgs::Marker::ADD;
-        std::stringstream ss;
-        ss << ppr.pose_name;
-        text_pose_id.text = ss.str();
-        std::stringstream ss2;
-        ss2 << ppr.score;
-        text_pose_score.text = ss2.str();
-        text_pose_score.pose.position.x = 0.0;
-        text_pose_score.pose.position.y = 0.0;
-        text_pose_score.pose.position.z = (k + 1) * 1.0;
-        text_pose_score.pose.orientation.x = 0.0;
-        text_pose_score.pose.orientation.y = 0.0;
-        text_pose_score.pose.orientation.z = 0.0;
-        text_pose_score.pose.orientation.w = 1.0;
-        text_pose_id.pose = text_pose_score.pose;
-        text_pose_id.pose.position.x += 2.0;
-        text_pose_score.scale.x = 0.34;
-        text_pose_score.scale.y = 0.34;
-        text_pose_score.scale.z = 0.34;
-        if (k == 0 and ppr.score < m_threshold)
-        {
-          text_pose_score.color.r = 0.0;
-          text_pose_score.color.g = 1.0;
-          text_pose_score.color.b = 0.0;
-          text_pose_score.color.a = 1.0;
-        }
-        else
-        {
-          text_pose_score.color.r = 1.0;
-          text_pose_score.color.g = 0.0;
-          text_pose_score.color.b = 0.0;
-          text_pose_score.color.a = 1.0;
-        }
-        text_pose_score.lifetime = ros::Duration(0.2);
-        text_pose_id.color = text_pose_score.color;
-        text_pose_id.scale = text_pose_score.scale;
-        text_pose_id.lifetime = text_pose_score.lifetime;
-        marker_array.markers.push_back(text_pose_id);
-        marker_array.markers.push_back(text_pose_score);
+        text_pose_score.color.r = 0.0;
+        text_pose_score.color.g = 1.0;
+        text_pose_score.color.b = 0.0;
+        text_pose_score.color.a = 1.0;
       }
+      else
+      {
+        text_pose_score.color.r = 1.0;
+        text_pose_score.color.g = 0.0;
+        text_pose_score.color.b = 0.0;
+        text_pose_score.color.a = 1.0;
+      }
+      text_pose_score.lifetime = ros::Duration(0.2);
+      text_pose_id.color = text_pose_score.color;
+      text_pose_id.scale = text_pose_score.scale;
+      text_pose_id.lifetime = text_pose_score.lifetime;
+      marker_array.markers.push_back(text_pose_id);
+      marker_array.markers.push_back(text_pose_score);
     }
-    m_rviz_publisher.publish(marker_array);
+    //    }
   }
+  m_rviz_publisher.publish(marker_array);
+  m_rviz2_publisher.publish(predicted_pose_marker);
   // publish the result
-  recognition_array_msg.header = recognition_array_msg.poses[0].header;
-  m_publisher.publish(recognition_array_msg);
+  debug_recognition_array_msg.header =
+      debug_recognition_array_msg.poses[0].header;
+  m_publisher.publish(debug_recognition_array_msg);
   // Visualization message
 }
 
@@ -299,10 +331,10 @@ PoseRecognition::readGalleryPoses()
 
   FileRow row(',');
   poses_file >> row;
-//  m_gallery_poses_names.resize(std::atoi(row[0].c_str()));
-//  m_gallery_poses.resize(m_gallery_poses_names.size());
-//  m_per_frame_scores.resize(m_gallery_poses.size());
-//  m_final_scores.resize(m_gallery_poses.size());
+  //  m_gallery_poses_names.resize(std::atoi(row[0].c_str()));
+  //  m_gallery_poses.resize(m_gallery_poses_names.size());
+  //  m_per_frame_scores.resize(m_gallery_poses.size());
+  //  m_final_scores.resize(m_gallery_poses.size());
   //  std::vector<std::string> dirs_to_read(m_gallery_poses_names.size());
   //  std::vector<std::string> frames_to_read(m_gallery_poses_names.size());
   while(poses_file >> row)

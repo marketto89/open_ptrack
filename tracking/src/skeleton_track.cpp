@@ -425,8 +425,15 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
   }
 
   // Track ID over head
+  std::vector<geometry_msgs::Point> joints_tracks_tmp
+      (joint_tracks_.size());
+  for(uint i = 0; i < joint_tracks_.size(); ++i)
+  {
+    joints_tracks_tmp[i] = joint_tracks_[i]->getState();
+  }
   Eigen::Vector3d world_centroid =
-      open_ptrack::detection::SkeletonDetection::averageOverValidJoints(raw_joints_tmp_);
+      open_ptrack::detection::SkeletonDetection::averageOverValidJoints
+      (joints_tracks_tmp);
   double& x = world_centroid[0];
   double& y = world_centroid[1];
   double& z = world_centroid[2];
@@ -443,7 +450,7 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
   text_marker.text = ss.str();
   text_marker.pose.position.x = x;
   text_marker.pose.position.y = y;
-  text_marker.pose.position.z = z + 0.6;
+  text_marker.pose.position.z = z + 0.8;
   text_marker.pose.orientation.x = 0.0;
   text_marker.pose.orientation.y = 0.0;
   text_marker.pose.orientation.z = 0.0;

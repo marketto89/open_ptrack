@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   standard_pose
   template_recognizer
   opt_msgs
+  message_filters
 )
 
 catkin_package(

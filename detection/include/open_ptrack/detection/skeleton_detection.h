@@ -101,6 +101,8 @@ public:
 
   static Eigen::Vector3d
   averageOverValidJoints(const std::vector<rtpose_wrapper::Joint3DMsg> &joints);
+  static Eigen::Vector3d
+  averageOverValidJoints(const std::vector<geometry_msgs::Point> &joints);
 
 };
 } /* namespace detection */

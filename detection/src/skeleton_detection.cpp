@@ -71,6 +71,33 @@ SkeletonDetection::averageOverValidJoints(
   return count == 0 ? Eigen::Vector3d(0.0,0.0,0.0) : Eigen::Vector3d(v / count);
 
 }
+Eigen::Vector3d
+SkeletonDetection::averageOverValidJoints(
+    const std::vector<geometry_msgs::Point>& joints)
+{
+  Eigen::Vector3d v(0.0,0.0,0.0);
+  auto acc_lambda = [](Eigen::Vector3d m,
+      const geometry_msgs::Point& m1)
+  {
+    return std::isfinite(m1.x) and std::isfinite(m1.y) and std::isfinite(m1.z)?
+          m + Eigen::Vector3d(m1.x,m1.y,m1.z):
+          m;
+  };
+  auto count_lambda = [](const geometry_msgs::Point& m) {
+    return not ((fabs(m.x) < 0.01 and fabs(m.y) < 0.01 and fabs(m.z) < 0.01)
+                or not (std::isfinite(m.x) and std::isfinite(m.y)
+                        and std::isfinite(m.z))
+                );};
+  v = std::accumulate(joints.begin(),
+                      joints.end(),
+                      Eigen::Vector3d(0.0,0.0,0.0),
+                      acc_lambda);
+  uint count = std::count_if(joints.begin(),
+                             joints.end(),
+                             count_lambda);
+  return count == 0 ? Eigen::Vector3d(0.0,0.0,0.0) : Eigen::Vector3d(v / count);
+
+}
 
 bool
 SkeletonDetection::isValidJoint(const rtpose_wrapper::Joint3DMsg& joint) const

@@ -10,6 +10,9 @@
 #include <boost/filesystem.hpp>
 #include <numeric>
 #include <opt_msgs/PoseRecognitionArray.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/subscriber.h>
 
 namespace open_ptrack
 {
@@ -65,7 +68,9 @@ class PoseRecognition{
   typedef open_ptrack::bpr::StandardPose StandardPose;
   typedef Eigen::Matrix<double, 3,
   open_ptrack::bpe::SkeletonJoints::SIZE> SkeletonMatrix;
-
+  typedef message_filters::sync_policies::ApproximateTime
+  <opt_msgs::StandardSkeletonTrackArray, opt_msgs::SkeletonTrackArray>
+  MySyncPolicy;
 public:
 
   PoseRecognition();
@@ -74,7 +79,9 @@ private:
 
   ros::NodeHandle m_nh;
   ros::NodeHandle m_private_nh;
-  ros::Subscriber m_subscriber;
+  message_filters::Subscriber<opt_msgs::StandardSkeletonTrackArray> m_st_sk_sub;
+  message_filters::Subscriber<opt_msgs::SkeletonTrackArray> m_sk_sub;
+  message_filters::Synchronizer<MySyncPolicy> m_sync;
   std::map<size_t, std::vector<SkeletonMatrix>> m_gallery_poses;
   std::map<size_t, std::string> m_gallery_poses_names;
   std::map<size_t, std::vector<double>> m_per_frame_scores;
@@ -85,12 +92,15 @@ private:
   // how to fuse scores from different gallery frames of the same pose
   uint m_per_gallery_pose_score_fusion_policy;
   double m_threshold;
-  ros::Publisher m_publisher, m_rviz_publisher;
+  ros::Publisher m_publisher, m_rviz_publisher, m_rviz2_publisher;
+
 
   void
   readGalleryPoses();
   void
-  skeletonCallback(const opt_msgs::StandardSkeletonTrackArrayConstPtr &data);
+  skeletonCallback(
+      const opt_msgs::StandardSkeletonTrackArrayConstPtr &standard_data,
+      const opt_msgs::SkeletonTrackArrayConstPtr &data);
   void readMatricesForSinglePose(const uint pose_id);
 };
 
