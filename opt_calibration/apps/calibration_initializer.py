@@ -255,6 +255,7 @@ class CalibrationInitializer :
           sensor_msg.serial_right = sensor_item['serial_right']
         sensor_msg.enable_pose = self.enable_pose
         sensor_msg.enable_object = self.enable_object
+        sensor_msg.enable_people_tracking = self.enable_people_tracking
         # Invoke service
         try:
           add_sensor = rospy.ServiceProxy(service_name, OPTSensor)
