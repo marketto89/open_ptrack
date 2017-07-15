@@ -4,13 +4,15 @@ SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 add_definitions(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules roscpp rosconsole image_transport cv_bridge opt_msgs
-  body_pose_estimation)
+  body_pose_estimation tf_conversions dynamic_reconfigure)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_directories(${OpenCV_LIB_DIR})
 
+find_package(PCL REQUIRED)
+
 find_package(Eigen REQUIRED)
-include_directories(${Eigen_INCLUDE_DIRS} include ${catkin_INCLUDE_DIRS})
+include_directories(${Eigen_INCLUDE_DIRS} include ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 
 add_library(json src/json.cpp)
 target_link_libraries(json ${catkin_LIBRARIES})
@@ -35,3 +37,6 @@ target_link_libraries(ros2udp_converter ${catkin_LIBRARIES} json)
 
 add_executable(udp_listener apps/udp_listener.cpp src/udp_messaging.cpp)
 target_link_libraries(udp_listener ${catkin_LIBRARIES})
+
+add_executable(cloud_refinement apps/cloud_refinement.cpp)
+target_link_libraries(cloud_refinement ${catkin_LIBRARIES} ${PCL_LIBRARIES})
