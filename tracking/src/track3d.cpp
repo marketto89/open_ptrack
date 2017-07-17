@@ -377,11 +377,13 @@ Track3D::getMahalanobisDistance(double x, double y, double z, const ros::Time& w
 
     //        std::cout << "vx: " << vx << ", vy: " << vy<< std::endl;
 
-    return open_ptrack::tracking::KalmanFilter3D::performMahalanobisDistance(x, y, z, vx, vy, vz, mahalanobis_map6d_[index]);
+    return open_ptrack::tracking::KalmanFilter3D::performMahalanobisDistance
+        (x, y, z, vx, vy, vz, mahalanobis_map6d_[index]);
   }
   else
   {
-    return open_ptrack::tracking::KalmanFilter3D::performMahalanobisDistance(x, y, z, mahalanobis_map3d_[index]);
+    return open_ptrack::tracking::KalmanFilter3D::performMahalanobisDistance
+        (x, y, z, mahalanobis_map3d_[index]);
   }
 
 }

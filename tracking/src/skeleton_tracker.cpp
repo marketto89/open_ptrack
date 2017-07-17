@@ -367,5 +367,6 @@ SkeletonTracker::toMarkerArray(visualization_msgs::MarkerArray::Ptr &msg)
   }
 }
 
+
 } /* namespace tracking */
 } /* namespace open_ptrack */

@@ -148,6 +148,7 @@ public:
 
   void
   toSkeletonMarkerArray(visualization_msgs::MarkerArray::Ptr& msg);
+
 };
 
 } /* namespace tracking */

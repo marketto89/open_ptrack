@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="input_topic" default="/skeleton/skeletons" /> 
+  <arg name="input_topic" default="/detector/skeletons" /> 
   <!-- Launch the tracking node -->
   <node pkg="tracking" type="tracking_skeleton_tracker_node" name="skeleton_tracker_node" output="screen">
     <remap from="~input" to="$(arg input_topic)" />

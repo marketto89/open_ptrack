@@ -197,6 +197,7 @@ SkeletonTrack::toMsg(opt_msgs::SkeletonTrack& track_msg, bool vertical)
   track_msg.height = z_;
   track_msg.distance = distance_;
   track_msg.age = age_;
+
   track_msg.confidence = - data_association_score_;   // minus for transforming distance into a sort of confidence
   track_msg.visibility = visibility_;
 
