@@ -54,7 +54,7 @@ class CalibrationInitializer :
     self.frame_file_name = rospy.get_param('~frame_calibration_launch_file')
     self.enable_pose = rospy.get_param("~enable_pose")
     self.enable_object = rospy.get_param("~enable_object")
-    
+    self.enable_people_tracking = rospy.get_param("~enable_people_tracking")
     self.sensor_list = []
     self.sensor_map = {}
     for item in network:
@@ -255,6 +255,7 @@ class CalibrationInitializer :
           sensor_msg.serial_right = sensor_item['serial_right']
         sensor_msg.enable_pose = self.enable_pose
         sensor_msg.enable_object = self.enable_object
+        sensor_msg.enable_people_tracking = self.enable_people_tracking
         # Invoke service
         try:
           add_sensor = rospy.ServiceProxy(service_name, OPTSensor)

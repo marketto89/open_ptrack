@@ -310,9 +310,9 @@ PoseRecognition::skeletonCallback
       marker_array.markers.push_back(text_pose_score);
     }
     //    }
+    m_rviz_publisher.publish(marker_array);
+    m_rviz2_publisher.publish(predicted_pose_marker);
   }
-  m_rviz_publisher.publish(marker_array);
-  m_rviz2_publisher.publish(predicted_pose_marker);
   // publish the result
   debug_recognition_array_msg.header =
       debug_recognition_array_msg.poses[0].header;
