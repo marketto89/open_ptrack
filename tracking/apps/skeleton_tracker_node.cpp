@@ -94,7 +94,8 @@ ros::Publisher marker_pub;
 ros::Publisher standard_skel_pub;
 ros::Publisher standard_skel_markers_pub;
 ros::Publisher pointcloud_pub;
-ros::Publisher detection_marker_pub;
+ros::Publisher skeleton_detection_centroid_marker_pub;
+ros::Publisher skeleton_detection_markers_pub;
 ros::Publisher detection_trajectory_pub;
 ros::Publisher alive_ids_pub;
 size_t starting_index;
@@ -174,6 +175,104 @@ createMarker (int id, const std::string& frame_id,
   marker.lifetime = ros::Duration(0.2);
 
   return marker;
+}
+
+void
+createVisMarker
+(visualization_msgs::MarkerArray& skeleton_detection_msg,
+uint skel_index,
+const open_ptrack::detection::SkeletonDetection& skel_det,
+const cv::Vec3f& color)
+{
+  ros::Time time = ros::Time::now();
+  // Joint Markers
+  for(int i = 0, end = SkeletonJoints::SIZE; i != end; ++i)
+  {
+    const rtpose_wrapper::Joint3DMsg& j = skel_det.getSkeletonMsg().joints[i];
+    if (not std::isfinite(j.x + j.y + j.z)) continue;
+    visualization_msgs::Marker joint_marker;
+    joint_marker.header.frame_id = "world";
+    joint_marker.header.stamp = time;
+    joint_marker.ns = "joints";
+    joint_marker.id = i + skel_index * SkeletonJoints::SIZE;
+    joint_marker.type = visualization_msgs::Marker::SPHERE;
+    joint_marker.action = visualization_msgs::Marker::ADD;
+    geometry_msgs::Point p;
+    p.x = j.x; // just for better visualization
+    p.y = j.y; // just for better visualization
+    p.z = j.z; // just for better visualization
+    joint_marker.pose.position = p;
+    joint_marker.pose.orientation.x = 0.0;
+    joint_marker.pose.orientation.y = 0.0;
+    joint_marker.pose.orientation.z = 0.0;
+    joint_marker.pose.orientation.w = 1.0;
+    joint_marker.scale.x = 0.06;
+    joint_marker.scale.y = 0.06;
+    joint_marker.scale.z = 0.06;
+    joint_marker.color.r = color(0);
+    joint_marker.color.g = color(1);
+    joint_marker.color.b = color(2);
+    joint_marker.color.a = 1.0;
+
+    joint_marker.lifetime = ros::Duration(0.2);
+
+    skeleton_detection_msg.markers.push_back(joint_marker);
+  }
+  // Link markers
+  for(auto it = SkeletonLinks::LINKS.begin(),
+      end = SkeletonLinks::LINKS.end();
+      it != end; ++it)
+  {
+    geometry_msgs::Point p1;
+    geometry_msgs::Point p2;
+    const rtpose_wrapper::Joint3DMsg& j1 =
+        skel_det.getSkeletonMsg().joints[it->first];
+    const rtpose_wrapper::Joint3DMsg& j2 =
+        skel_det.getSkeletonMsg().joints[it->second];
+    if (not std::isfinite(j1.x + j1.y + j1.z)
+        or not std::isfinite(j2.x + j2.y + j2.z)) continue;
+    p1.x = j1.x;
+    p1.y = j1.y;
+    p1.z = j1.z;
+    p2.x = j2.x;
+    p2.y = j2.y;
+    p2.z = j2.z;
+    visualization_msgs::Marker line_marker;
+    line_marker.header.frame_id = "world";
+    line_marker.header.stamp = time;
+    line_marker.ns = "links";
+    line_marker.id = it - SkeletonLinks::LINKS.begin()
+        + skel_index * SkeletonLinks::LINKS.size();
+    line_marker.type = visualization_msgs::Marker::LINE_STRIP;
+    line_marker.action = visualization_msgs::Marker::ADD;
+    line_marker.pose.orientation.x = 0.0;
+    line_marker.pose.orientation.y = 0.0;
+    line_marker.pose.orientation.z = 0.0;
+    line_marker.pose.orientation.w = 1.0;
+    line_marker.scale.x = 0.1;
+    line_marker.scale.y = 0.1;
+    line_marker.scale.z = 0.1;
+    line_marker.color.r = 1.0;
+    line_marker.color.g = 1.0;
+    line_marker.color.b = 1.0;
+    line_marker.color.a = 1.0;
+
+    std_msgs::ColorRGBA color_random;
+    color_random.a = color_random.r = color_random.g = color_random.b = 1.0;
+
+    line_marker.lifetime = ros::Duration(0.2);
+    line_marker.points.push_back(p1);
+    line_marker.points.push_back(p2);
+    if(it->first == SkeletonJoints::RELBOW
+       or it->second == SkeletonJoints::RELBOW)
+    {
+      color_random.r = 1.0; color_random.b = color_random.g = 0.0;
+    }
+    line_marker.colors.push_back(color_random);
+    line_marker.colors.push_back(color_random);
+    skeleton_detection_msg.markers.push_back(line_marker);
+    //      }
+  }
 }
 
 void
@@ -480,7 +579,7 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
       for(uint i = 0, size = copy.joints.size(); i < size; ++i)
       {
         rtpose_wrapper::Joint3DMsg& j = copy.joints[i];
-        if (j.confidence < _min_confidence_per_joint)
+        if (j.confidence > _min_confidence_per_joint)
           detections_vector.push_back(
                 open_ptrack::detection::SkeletonDetection(*it, source));
       }
@@ -569,7 +668,8 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
         // Publish tracking message:
         results_pub.publish(tracking_results_msg);
         // Publish standard skeleton tracks (if needed)
-        visualization_msgs::MarkerArray vis_markers_array;
+        visualization_msgs::MarkerArray vis_markers_array,
+            skeleton_detection_msg;
         if(standard_skel_pub.getNumSubscribers() > 0
            or standard_skel_markers_pub.getNumSubscribers() > 0)
         {
@@ -661,8 +761,20 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
           point.b = marker.color.b * 255.0f;
           detection_insert_index = (detection_insert_index + 1) % detection_history_size;
           detection_history_pointcloud->points[detection_insert_index] = point;
+
+          if (skeleton_detection_markers_pub.getNumSubscribers() > 0)
+          {
+            visualization_msgs::MarkerArray skeleton_detection_msg;
+
+            for(uint i = 0; i < detections_vector.size(); ++i)
+            {
+              createVisMarker(skeleton_detection_msg,i,detections_vector[i],
+                              camera_colors[color_index]);
+            }
+            skeleton_detection_markers_pub.publish(skeleton_detection_msg);
+          }
         }
-        detection_marker_pub.publish(marker_msg); // publish marker message
+        skeleton_detection_centroid_marker_pub.publish(marker_msg); // publish marker message
         detection_trajectory_pub.publish(detection_history_pointcloud); // publish trajectory message
       }
     }
@@ -831,7 +943,10 @@ main(int argc, char** argv)
       ("/tracker/skeleton_history", 1);
   results_pub = nh.advertise<opt_msgs::SkeletonTrackArray>
       ("/tracker/skeleton_tracks", 100);
-  detection_marker_pub = nh.advertise<visualization_msgs::MarkerArray>
+  skeleton_detection_centroid_marker_pub =
+      nh.advertise<visualization_msgs::MarkerArray>
+      ("/detector/skeleton_centroid_markers_array", 1);
+  skeleton_detection_markers_pub = nh.advertise<visualization_msgs::MarkerArray>
       ("/detector/skeleton_markers_array", 1);
   detection_trajectory_pub = nh.advertise<pcl::PointCloud<pcl::PointXYZRGBA> >
       ("/detector/skeleton_history", 1);
