@@ -180,9 +180,9 @@ createMarker (int id, const std::string& frame_id,
 void
 createVisMarker
 (visualization_msgs::MarkerArray& skeleton_detection_msg,
-uint skel_index,
-const open_ptrack::detection::SkeletonDetection& skel_det,
-const cv::Vec3f& color)
+ uint skel_index,
+ const open_ptrack::detection::SkeletonDetection& skel_det,
+ const cv::Vec3f& color)
 {
   ros::Time time = ros::Time::now();
   // Joint Markers
@@ -252,26 +252,16 @@ const cv::Vec3f& color)
     line_marker.scale.x = 0.1;
     line_marker.scale.y = 0.1;
     line_marker.scale.z = 0.1;
-    line_marker.color.r = 1.0;
-    line_marker.color.g = 1.0;
-    line_marker.color.b = 1.0;
+    line_marker.color.r = color(0);
+    line_marker.color.g = color(1);
+    line_marker.color.b = color(2);
     line_marker.color.a = 1.0;
-
-    std_msgs::ColorRGBA color_random;
-    color_random.a = color_random.r = color_random.g = color_random.b = 1.0;
-
     line_marker.lifetime = ros::Duration(0.2);
     line_marker.points.push_back(p1);
     line_marker.points.push_back(p2);
-    if(it->first == SkeletonJoints::RELBOW
-       or it->second == SkeletonJoints::RELBOW)
-    {
-      color_random.r = 1.0; color_random.b = color_random.g = 0.0;
-    }
-    line_marker.colors.push_back(color_random);
-    line_marker.colors.push_back(color_random);
+    line_marker.colors.push_back(line_marker.color);
+    line_marker.colors.push_back(line_marker.color);
     skeleton_detection_msg.markers.push_back(line_marker);
-    //      }
   }
 }
 
@@ -575,13 +565,16 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
         it = msg->skeletons.begin(), end = msg->skeletons.end();
         it != end; it++)
     {
-      rtpose_wrapper::SkeletonMsg copy = *it;
-      for(uint i = 0, size = copy.joints.size(); i < size; ++i)
+      detections_vector.push_back(
+            open_ptrack::detection::SkeletonDetection(*it, source));
+      open_ptrack::detection::SkeletonDetection& lst = detections_vector.back();
+      for(uint i = 0, size = lst.getSkeletonMsg().joints.size(); i < size; ++i)
       {
-        rtpose_wrapper::Joint3DMsg& j = copy.joints[i];
-        if (j.confidence > _min_confidence_per_joint)
-          detections_vector.push_back(
-                open_ptrack::detection::SkeletonDetection(*it, source));
+        rtpose_wrapper::Joint3DMsg& j = lst.getSkeletonMsg().joints[i];
+        if (j.confidence < _min_confidence_per_joint)
+        {
+          j.x = j.y = j.z = std::numeric_limits<double>::quiet_NaN();
+        }
       }
     }
 
