@@ -15,8 +15,8 @@ per_gallery_pose_score_fusion_policy: 1
 # flags fr enabling limbs in the recognition score computation
 # false = limb will not be used
 # true = limb will be used
-use_right_leg: true
-use_left_leg: true
+use_right_leg: false
+use_left_leg: false
 use_right_arm: true
 use_left_arm: true
 

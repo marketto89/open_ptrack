@@ -227,6 +227,7 @@ PoseRecognition::skeletonCallback
       recognition_msg.gallery_poses[it->second] = pr;
     }
     debug_recognition_array_msg.poses.push_back(recognition_msg);
+
     // visualization marker output
     ros::Time time = ros::Time::now();
     auto& sk2 = data->tracks[skel_id];
@@ -240,6 +241,12 @@ PoseRecognition::skeletonCallback
     std::stringstream ss;
     ss << recognition_msg.best_prediction_result.pose_name;
     text_pose_name.text = ss.str();
+    if(sk2.joints[SkeletonJoints::CHEST].x
+       + sk2.joints[SkeletonJoints::CHEST].y
+       + sk2.joints[SkeletonJoints::CHEST].z == 0)
+    {
+      continue;
+    }
     text_pose_name.pose.position.x = sk2.joints[SkeletonJoints::CHEST].x;
     text_pose_name.pose.position.y = sk2.joints[SkeletonJoints::CHEST].y;
     text_pose_name.pose.position.z = sk2.joints[SkeletonJoints::CHEST].z + 1.0;
@@ -276,15 +283,18 @@ PoseRecognition::skeletonCallback
       std::stringstream ss2;
       ss2 << ppr.score;
       text_pose_score.text = ss2.str();
-      text_pose_score.pose.position.x = 0.0;
-      text_pose_score.pose.position.y = 0.0;
-      text_pose_score.pose.position.z = (k + 1) * 1.0;
+      text_pose_score.pose.position.x = sk2.joints[SkeletonJoints::CHEST].x;
+      text_pose_score.pose.position.y = sk2.joints[SkeletonJoints::CHEST].y;
+      text_pose_score.pose.position.z = sk2.joints[SkeletonJoints::CHEST].z + 1.0 + (k + 1) * 0.2;
+//      text_pose_score.pose.position.x = 0.0;
+//      text_pose_score.pose.position.y = 0.0;
+//      text_pose_score.pose.position.z = (k + 1) * 1.0;
       text_pose_score.pose.orientation.x = 0.0;
       text_pose_score.pose.orientation.y = 0.0;
       text_pose_score.pose.orientation.z = 0.0;
       text_pose_score.pose.orientation.w = 1.0;
       text_pose_id.pose = text_pose_score.pose;
-      text_pose_id.pose.position.x += 2.0;
+      text_pose_id.pose.position.x += 1.0;
       text_pose_score.scale.x = 0.34;
       text_pose_score.scale.y = 0.34;
       text_pose_score.scale.z = 0.34;
