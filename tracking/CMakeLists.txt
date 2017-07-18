@@ -29,9 +29,11 @@ find_package(Eigen REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS} include ${catkin_INCLUDE_DIRS})
 
 # Dynamic reconfigure support
-generate_dynamic_reconfigure_options(cfg/Tracker.cfg
-                                     #cfg/TrackerSmoother.cfg
-                                     cfg/MovingAverageSmoother.cfg
+generate_dynamic_reconfigure_options(
+  cfg/SkeletonTracker.cfg
+  cfg/Tracker.cfg
+  #cfg/TrackerSmoother.cfg
+  cfg/MovingAverageSmoother.cfg
 )
 
 include_directories(cfg/cpp)

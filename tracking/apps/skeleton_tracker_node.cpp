@@ -69,9 +69,9 @@
 
 // Dynamic reconfigure:
 #include <dynamic_reconfigure/server.h>
-#include <tracking/TrackerConfig.h>
+#include <tracking/SkeletonTrackerConfig.h>
 
-typedef tracking::TrackerConfig Config;
+typedef tracking::SkeletonTrackerConfig Config;
 typedef dynamic_reconfigure::Server<Config> ReconfigureServer;
 
 // Global variables:
@@ -132,6 +132,7 @@ int delete_old_markers_factor_ = 10;
 uint num_frames_ = 0;
 std::map<std::string, ros::Time> last_received_detection_;
 ros::Duration max_time_between_detections_;
+double _min_confidence_per_joint;
 
 visualization_msgs::MarkerArray::Ptr marker_array_msg_ = nullptr;
 
@@ -475,8 +476,14 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
         it = msg->skeletons.begin(), end = msg->skeletons.end();
         it != end; it++)
     {
-      detections_vector.push_back(
-            open_ptrack::detection::SkeletonDetection(*it, source));
+      rtpose_wrapper::SkeletonMsg copy = *it;
+      for(uint i = 0, size = copy.joints.size(); i < size; ++i)
+      {
+        rtpose_wrapper::Joint3DMsg& j = copy.joints[i];
+        if (j.confidence < _min_confidence_per_joint)
+          detections_vector.push_back(
+                open_ptrack::detection::SkeletonDetection(*it, source));
+      }
     }
 
     // Detection correction by means of calibration refinement:
@@ -772,6 +779,7 @@ fillChiMap3D(std::map<double, double>& chi_map, bool velocity_in_motion_term)
 void
 configCb(Config &config, uint32_t level)
 {
+  _min_confidence_per_joint = config.min_confidence_per_skeleton_joint;
   tracker->setMinConfidenceForTrackInitialization
       (config.min_confidence_initialization);
   max_detection_delay = config.max_detection_delay;
