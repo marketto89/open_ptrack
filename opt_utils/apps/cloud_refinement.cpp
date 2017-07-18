@@ -49,6 +49,7 @@
 #include <pcl/common/transforms.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/filters/voxel_grid.h>
 
 #include <fstream>
 #include <string>
@@ -94,6 +95,12 @@ readMatrixFromFile (std::string filename)
 void
 cloud_cb (const PointCloudT::ConstPtr& callback_cloud)
 {
+  // Create the filtering object
+  PointCloudT cloud_filtered;
+  pcl::VoxelGrid<PointT> sor;
+  sor.setInputCloud (callback_cloud);
+  sor.setLeafSize (0.05f, 0.05f, 0.05f);
+  sor.filter (cloud_filtered);
   if (not registration_matrix_read)
   {
     // Read registration matrix from calibration refinement:
@@ -121,7 +128,7 @@ cloud_cb (const PointCloudT::ConstPtr& callback_cloud)
   }
 
   // Copy cloud data:
-  *refined_cloud = *callback_cloud;
+  *refined_cloud = cloud_filtered;
 
   tf::StampedTransform extrinsic_transform;
   Eigen::Affine3d extrinsic_transform_matrix;
@@ -131,10 +138,10 @@ cloud_cb (const PointCloudT::ConstPtr& callback_cloud)
   Eigen::Affine3d final_transform = registration_matrix * extrinsic_transform_matrix;
 
   pcl::transformPointCloud (*refined_cloud, *refined_cloud, final_transform);
-//  for (unsigned int i = 0; i < refined_cloud->size(); i++)
-//  {
-//    refined_cloud->points[i] = pcl::transformPoint(refined_cloud->points[i], final_transform);
-//  }
+  //  for (unsigned int i = 0; i < refined_cloud->size(); i++)
+  //  {
+  //    refined_cloud->points[i] = pcl::transformPoint(refined_cloud->points[i], final_transform);
+  //  }
 
   refined_cloud->header = callback_cloud->header;
   ros::Time curr_time = ros::Time::now();

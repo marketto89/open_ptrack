@@ -12,6 +12,9 @@ Panels:
         - /MarkerArray3/Namespaces1
         - /MarkerArray6
         - /MarkerArray6/Namespaces1
+        - /PointCloud23
+        - /PointCloud24
+        - /PointCloud25
       Splitter Ratio: 0.526846
     Tree Height: 775
   - Class: rviz/Selection
@@ -32,7 +35,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: PointCloud2
 Visualization Manager:
   Class: ""
   Displays:
@@ -91,7 +94,15 @@ Visualization Manager:
         All Enabled: false
         kinect_boxxx:
           Value: true
+        kinect_boxxx_ir_frame:
+          Value: true
+        kinect_boxxx_ir_optical_frame:
+          Value: true
         kinect_boxxx_link:
+          Value: true
+        kinect_boxxx_rgb_frame:
+          Value: true
+        kinect_boxxx_rgb_optical_frame:
           Value: true
         kinect_master:
           Value: true
@@ -107,7 +118,15 @@ Visualization Manager:
           Value: true
         kinect_sager:
           Value: true
+        kinect_sager_ir_frame:
+          Value: true
+        kinect_sager_ir_optical_frame:
+          Value: true
         kinect_sager_link:
+          Value: true
+        kinect_sager_rgb_frame:
+          Value: true
+        kinect_sager_rgb_optical_frame:
           Value: true
         world:
           Value: true
@@ -120,7 +139,12 @@ Visualization Manager:
         world:
           kinect_boxxx:
             kinect_boxxx_link:
-              {}
+              kinect_boxxx_ir_frame:
+                kinect_boxxx_ir_optical_frame:
+                  {}
+              kinect_boxxx_rgb_frame:
+                kinect_boxxx_rgb_optical_frame:
+                  {}
           kinect_master:
             kinect_master_link:
               kinect_master_ir_frame:
@@ -131,7 +155,12 @@ Visualization Manager:
                   {}
           kinect_sager:
             kinect_sager_link:
-              {}
+              kinect_sager_ir_frame:
+                kinect_sager_ir_optical_frame:
+                  {}
+              kinect_sager_rgb_frame:
+                kinect_sager_rgb_optical_frame:
+                  {}
       Update Interval: 0
       Value: true
     - Class: rviz/MarkerArray
@@ -148,9 +177,7 @@ Visualization Manager:
       Name: MarkerArray
       Namespaces:
         joints_raw: false
-        joints_valid: true
         links_raw: false
-        links_valid: true
         numbers: true
       Queue Size: 100
       Value: true
@@ -183,7 +210,7 @@ Visualization Manager:
       Marker Topic: /recognizer/markers
       Name: MarkerArray
       Namespaces:
-        pose_recognition: true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -225,6 +252,96 @@ Visualization Manager:
         links: true
       Queue Size: 100
       Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 85; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /kinect_boxxx/depth_ir/points_refined
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /kinect_master/depth_ir/points_refined
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 127
+      Color Transformer: FlatColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /kinect_sager/depth_ir/points_refined
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -261,10 +378,10 @@ Visualization Manager:
         Z: 0.107659
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.50791
+      Pitch: 0.60791
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.116174
+      Yaw: 1.26117
     Saved: ~
 Window Geometry:
   Displays:

@@ -1,13 +1,25 @@
 <?xml version="1.0"?>
 <launch>
 	
-  <arg name="sensor_name"     default="kinect2_head" />
+  <arg name="sensor_name"     default="kinect_master" />
+  <arg name="sensor_name2"     default="kinect_boxxx" />
+  <arg name="sensor_name3"     default="kinect_sager" />
   
   <!-- Republish sensor point cloud after applying refinement -->
   <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name)" output="screen">
     <remap from="~input"        		to="/$(arg sensor_name)/depth_ir/points" />
     <remap from="~output"       		to="/$(arg sensor_name)/depth_ir/points_refined" />
   </node>
+
+<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name)_2" output="screen">
+  <remap from="~input"        		to="/$(arg sensor_name2)/depth_ir/points" />
+  <remap from="~output"       		to="/$(arg sensor_name2)/depth_ir/points_refined" />
+</node>
+
+<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name)_3" output="screen">
+  <remap from="~input"        		to="/$(arg sensor_name3)/depth_ir/points" />
+  <remap from="~output"       		to="/$(arg sensor_name3)/depth_ir/points_refined" />
+</node>
 
 </launch>
 
