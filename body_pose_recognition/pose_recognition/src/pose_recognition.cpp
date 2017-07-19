@@ -34,7 +34,7 @@ PoseRecognition::PoseRecognition():
   m_private_nh("~"),
   m_sk_sub(m_nh, "/tracker/skeleton_tracks", 10),
   m_st_sk_sub(m_nh, "/tracker/standard_skeleton_tracks", 10),
-  m_sync(MySyncPolicy(10),  m_st_sk_sub, m_sk_sub)
+  m_sync(m_st_sk_sub, m_sk_sub, 10)
 {
   m_use_left_arm = m_private_nh.param("use_left_arm", true);
   m_use_left_leg = m_private_nh.param("use_left_leg", true);
@@ -64,43 +64,44 @@ PoseRecognition::skeletonCallback
 (const opt_msgs::StandardSkeletonTrackArrayConstPtr &standard_data,
  const opt_msgs::SkeletonTrackArrayConstPtr &data)
 {
-  if (data->tracks.size() != standard_data->tracks.size())
-    return;
-  opt_msgs::PoseRecognitionArray debug_recognition_array_msg;
+  opt_msgs::PoseRecognitionArray recognition_array_msg;
   visualization_msgs::MarkerArray predicted_pose_marker, marker_array;
 
-  uint skel_id = 0;
-  for (auto& sk : standard_data->tracks)
+  if(data->tracks.size() != standard_data->tracks.size()) return;
+
+  for (size_t skel_id = 0, skel_size = standard_data->tracks.size();
+       skel_id != skel_size; ++skel_id)
   {
+    const opt_msgs::StandardSkeletonTrack& observed_st_sk = standard_data->tracks[skel_id];
     // sk already in standard pose
     Eigen::Matrix<double, 6, 1> r_arm;
     Eigen::Matrix<double, 6, 1> l_arm;
     Eigen::Matrix<double, 6, 1> r_leg;
     Eigen::Matrix<double, 6, 1> l_leg;
-    r_arm << sk.joints[SkeletonJoints::RELBOW].x,
-        sk.joints[SkeletonJoints::RELBOW].y,
-        sk.joints[SkeletonJoints::RELBOW].z,
-        sk.joints[SkeletonJoints::RWRIST].x,
-        sk.joints[SkeletonJoints::RWRIST].y,
-        sk.joints[SkeletonJoints::RWRIST].z;
-    l_arm << sk.joints[SkeletonJoints::LELBOW].x,
-        sk.joints[SkeletonJoints::LELBOW].y,
-        sk.joints[SkeletonJoints::LELBOW].z,
-        sk.joints[SkeletonJoints::LWRIST].x,
-        sk.joints[SkeletonJoints::LWRIST].y,
-        sk.joints[SkeletonJoints::LWRIST].z;
-    r_leg << sk.joints[SkeletonJoints::RKNEE].x,
-        sk.joints[SkeletonJoints::RKNEE].y,
-        sk.joints[SkeletonJoints::RKNEE].z,
-        sk.joints[SkeletonJoints::RANKLE].x,
-        sk.joints[SkeletonJoints::RANKLE].y,
-        sk.joints[SkeletonJoints::RANKLE].z;
-    l_leg << sk.joints[SkeletonJoints::LKNEE].x,
-        sk.joints[SkeletonJoints::LKNEE].y,
-        sk.joints[SkeletonJoints::LKNEE].z,
-        sk.joints[SkeletonJoints::LANKLE].x,
-        sk.joints[SkeletonJoints::LANKLE].y,
-        sk.joints[SkeletonJoints::LANKLE].z;
+    r_arm << observed_st_sk.joints[SkeletonJoints::RELBOW].x,
+        observed_st_sk.joints[SkeletonJoints::RELBOW].y,
+        observed_st_sk.joints[SkeletonJoints::RELBOW].z,
+        observed_st_sk.joints[SkeletonJoints::RWRIST].x,
+        observed_st_sk.joints[SkeletonJoints::RWRIST].y,
+        observed_st_sk.joints[SkeletonJoints::RWRIST].z;
+    l_arm << observed_st_sk.joints[SkeletonJoints::LELBOW].x,
+        observed_st_sk.joints[SkeletonJoints::LELBOW].y,
+        observed_st_sk.joints[SkeletonJoints::LELBOW].z,
+        observed_st_sk.joints[SkeletonJoints::LWRIST].x,
+        observed_st_sk.joints[SkeletonJoints::LWRIST].y,
+        observed_st_sk.joints[SkeletonJoints::LWRIST].z;
+    r_leg << observed_st_sk.joints[SkeletonJoints::RKNEE].x,
+        observed_st_sk.joints[SkeletonJoints::RKNEE].y,
+        observed_st_sk.joints[SkeletonJoints::RKNEE].z,
+        observed_st_sk.joints[SkeletonJoints::RANKLE].x,
+        observed_st_sk.joints[SkeletonJoints::RANKLE].y,
+        observed_st_sk.joints[SkeletonJoints::RANKLE].z;
+    l_leg << observed_st_sk.joints[SkeletonJoints::LKNEE].x,
+        observed_st_sk.joints[SkeletonJoints::LKNEE].y,
+        observed_st_sk.joints[SkeletonJoints::LKNEE].z,
+        observed_st_sk.joints[SkeletonJoints::LANKLE].x,
+        observed_st_sk.joints[SkeletonJoints::LANKLE].y,
+        observed_st_sk.joints[SkeletonJoints::LANKLE].z;
     for(uint pose_id = 0, end_id = m_gallery_poses.size(); pose_id != end_id;
         ++pose_id)
     {
@@ -209,14 +210,13 @@ PoseRecognition::skeletonCallback
     } // for pose_id
     // result
     opt_msgs::PoseRecognition recognition_msg;
-    recognition_msg.header = standard_data->header;
     recognition_msg.gallery_poses.resize(m_final_scores.size());
     // sort m_final_scores based on the second field
     std::map<double, size_t> dst = flip_map(m_final_scores);
     // theoretically flip_map should return a multimap,
-    // but because the probability that two scores are the same is really low
+    // but the probability that two scores are the same is really low
     // When it happens the values are overwritten and I will loose
-    // a couple of recognition ids
+    // a couple of recognition ids => no problem
     opt_msgs::PosePredictionResult max_pr;
     if ((dst.begin())->first < m_threshold)
     {
@@ -240,11 +240,16 @@ PoseRecognition::skeletonCallback
       pr.score = it->first;
       recognition_msg.gallery_poses[it->second] = pr;
     }
-    debug_recognition_array_msg.poses.push_back(recognition_msg);
-
+    recognition_array_msg.poses.push_back(recognition_msg);
     // visualization marker output
     ros::Time time = ros::Time::now();
-    auto& sk2 = data->tracks[skel_id];
+    const opt_msgs::SkeletonTrack& sk2 = data->tracks[skel_id];
+    if(Eigen::Vector3d(sk2.joints[SkeletonJoints::CHEST].x,
+                       sk2.joints[SkeletonJoints::CHEST].y,
+                       sk2.joints[SkeletonJoints::CHEST].z).norm() < 0.01f)
+    {
+      continue;
+    }
     visualization_msgs::Marker text_pose_name;
     text_pose_name.header.frame_id = "world";
     text_pose_name.header.stamp = time;
@@ -255,12 +260,9 @@ PoseRecognition::skeletonCallback
     std::stringstream ss;
     ss << recognition_msg.best_prediction_result.pose_name;
     text_pose_name.text = ss.str();
-    if(sk2.joints[SkeletonJoints::CHEST].x
-       + sk2.joints[SkeletonJoints::CHEST].y
-       + sk2.joints[SkeletonJoints::CHEST].z == 0)
-    {
-      continue;
-    }
+//    ROS_INFO_STREAM(sk2.joints[SkeletonJoints::CHEST].x
+//        << "," << sk2.joints[SkeletonJoints::CHEST].y
+//        << "," << sk2.joints[SkeletonJoints::CHEST].z);
     text_pose_name.pose.position.x = sk2.joints[SkeletonJoints::CHEST].x;
     text_pose_name.pose.position.y = sk2.joints[SkeletonJoints::CHEST].y;
     text_pose_name.pose.position.z = sk2.joints[SkeletonJoints::CHEST].z + 1.0;
@@ -301,9 +303,9 @@ PoseRecognition::skeletonCallback
       text_pose_score.pose.position.y = sk2.joints[SkeletonJoints::CHEST].y;
       text_pose_score.pose.position.z =
           sk2.joints[SkeletonJoints::CHEST].z + 1.0 + (k + 1) * 0.2;
-//      text_pose_score.pose.position.x = 0.0;
-//      text_pose_score.pose.position.y = 0.0;
-//      text_pose_score.pose.position.z = (k + 1) * 1.0;
+      //      text_pose_score.pose.position.x = 0.0;
+      //      text_pose_score.pose.position.y = 0.0;
+      //      text_pose_score.pose.position.z = (k + 1) * 1.0;
       text_pose_score.pose.orientation.x = 0.0;
       text_pose_score.pose.orientation.y = 0.0;
       text_pose_score.pose.orientation.z = 0.0;
@@ -314,20 +316,13 @@ PoseRecognition::skeletonCallback
       text_pose_score.scale.y = 0.34;
       text_pose_score.scale.z = 0.34;
       text_pose_score.color = sk2.color;
-//      if (k == 0 and ppr.score < m_threshold)
-//      {
-//        text_pose_score.color.r = 0.0;
-//        text_pose_score.color.g = 1.0;
-//        text_pose_score.color.b = 0.0;
-//        text_pose_score.color.a = 1.0;
-//      }
-//      else
-//      {
-//        text_pose_score.color.r = 1.0;
-//        text_pose_score.color.g = 0.0;
-//        text_pose_score.color.b = 0.0;
-//        text_pose_score.color.a = 1.0;
-//      }
+      if (ppr.score < m_threshold)
+      {
+        text_pose_score.color.r = 0.0;
+        text_pose_score.color.g = 1.0;
+        text_pose_score.color.b = 0.0;
+        text_pose_score.color.a = 1.0;
+      }
       text_pose_score.lifetime = ros::Duration(0.2);
       text_pose_id.color = text_pose_score.color;
       text_pose_id.scale = text_pose_score.scale;
@@ -335,15 +330,13 @@ PoseRecognition::skeletonCallback
       marker_array.markers.push_back(text_pose_id);
       marker_array.markers.push_back(text_pose_score);
     }
-    //    }
     m_rviz_publisher.publish(marker_array);
     m_rviz2_publisher.publish(predicted_pose_marker);
-    skel_id++;
-  } // tracks (skel_id)
+  } // standard tracks (skel_id)
   // publish the result
-  debug_recognition_array_msg.header =
-      debug_recognition_array_msg.poses[0].header;
-  m_publisher.publish(debug_recognition_array_msg);
+  recognition_array_msg.header.frame_id = data->header.frame_id;
+  recognition_array_msg.header.stamp = data->header.stamp;
+  m_publisher.publish(recognition_array_msg);
   // Visualization message
 }
 

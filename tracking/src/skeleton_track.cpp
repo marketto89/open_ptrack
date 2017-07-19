@@ -271,7 +271,8 @@ SkeletonTrack::isValid(const rtpose_wrapper::Joint3DMsg& joint)
 }
 
 void
-SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
+SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg,
+                            bool remove_head_in_rviz)
 {
   if(debug_count_ < 0 and SkeletonTrack::count == 0)
     ROS_WARN_STREAM("SkeletonTrack TODO: reqrite createMarker with tracks");
@@ -296,6 +297,8 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
     // Joint Markers
     for(int i = 0, end = SkeletonJoints::SIZE; i != end; ++i)
     {
+      if(remove_head_in_rviz)
+        if(i == SkeletonJoints::HEAD) continue;
       visualization_msgs::Marker joint_marker;
       joint_marker.header.frame_id = frame_id_;
       joint_marker.header.stamp = now;
@@ -324,6 +327,10 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
     for(auto it = SkeletonLinks::LINKS.begin(), end = SkeletonLinks::LINKS.end();
         it != end; ++it)
     {
+      if(remove_head_in_rviz)
+        if(it->first == SkeletonJoints::HEAD
+           or it->second == SkeletonJoints::HEAD)
+          continue;
       const geometry_msgs::Point& p1 = joint_tracks_[it->first]->getState();
       const geometry_msgs::Point& p2 = joint_tracks_[it->second]->getState();
       //      if( isValid(p1)
@@ -365,6 +372,8 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
   for(int i = 0, end = SkeletonJoints::SIZE; i != end; ++i)
   {
     if ( not isValid(raw_joints_tmp_[i])) continue;
+    if(remove_head_in_rviz)
+      if(i == SkeletonJoints::HEAD) continue;
     visualization_msgs::Marker joint_marker;
     joint_marker.header.frame_id = frame_id_;
     joint_marker.header.stamp = now;
@@ -403,6 +412,10 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
         and
         isValid(p2))
     {
+      if(remove_head_in_rviz)
+        if(it->first == SkeletonJoints::HEAD
+           or it->second == SkeletonJoints::HEAD)
+          continue;
       visualization_msgs::Marker line_marker;
       line_marker.header.frame_id = frame_id_;
       line_marker.header.stamp = now;

@@ -10,8 +10,7 @@
 #include <boost/filesystem.hpp>
 #include <numeric>
 #include <opt_msgs/PoseRecognitionArray.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/time_synchronizer.h>
 #include <message_filters/subscriber.h>
 
 namespace open_ptrack
@@ -68,9 +67,6 @@ class PoseRecognition{
   typedef open_ptrack::bpr::StandardPose StandardPose;
   typedef Eigen::Matrix<double, 3,
   open_ptrack::bpe::SkeletonJoints::SIZE> SkeletonMatrix;
-  typedef message_filters::sync_policies::ApproximateTime
-  <opt_msgs::StandardSkeletonTrackArray, opt_msgs::SkeletonTrackArray>
-  MySyncPolicy;
 public:
 
   PoseRecognition();
@@ -81,7 +77,8 @@ private:
   ros::NodeHandle m_private_nh;
   message_filters::Subscriber<opt_msgs::StandardSkeletonTrackArray> m_st_sk_sub;
   message_filters::Subscriber<opt_msgs::SkeletonTrackArray> m_sk_sub;
-  message_filters::Synchronizer<MySyncPolicy> m_sync;
+  message_filters::TimeSynchronizer<opt_msgs::StandardSkeletonTrackArray,
+  opt_msgs::SkeletonTrackArray> m_sync;
   std::map<size_t, std::vector<SkeletonMatrix>> m_gallery_poses;
   std::map<size_t, std::string> m_gallery_poses_names;
   std::map<size_t, std::vector<double>> m_per_frame_scores;

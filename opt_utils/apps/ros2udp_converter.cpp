@@ -321,7 +321,7 @@ main(int argc, char **argv)
   message_filters::TimeSynchronizer<opt_msgs::SkeletonTrackArray,
       opt_msgs::StandardSkeletonTrackArray, opt_msgs::PoseRecognitionArray>
       sync(skel_track_array_sub, standard_skel_track_array_sub,
-           pose_recognition_array_sub, 10);
+           pose_recognition_array_sub, 1);
   sync.registerCallback(boost::bind(&synchronizedCallback, _1, _2, _3));
 
 

@@ -122,7 +122,8 @@ public:
        const std::vector<rtpose_wrapper::Joint3DMsg>& joints);
 
   void
-  createMarker(visualization_msgs::MarkerArray::Ptr& msg);
+  createMarker(visualization_msgs::MarkerArray::Ptr& msg,
+               bool remove_head_in_rviz = false);
 
   void
   createSkeletonMarker(visualization_msgs::MarkerArray::Ptr& msg);

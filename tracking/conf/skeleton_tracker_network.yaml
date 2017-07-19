@@ -65,6 +65,7 @@ history_pointcloud: true
 history_size: 500
 # Flag stating if a spheric marker (with number) for every track (visible in RViz) should be created:
 markers: true
+remove_head_in_rviz: true # it is noisy and not informative
 # Flag stating if tracking results should be sent over the network:
 tracking_results: true
 # Flag stating if markers and a point cloud containing detection trajectories (visible in RViz) should be created:

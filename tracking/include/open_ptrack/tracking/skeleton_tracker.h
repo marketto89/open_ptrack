@@ -144,7 +144,8 @@ public:
   updateTracks();
 
   void
-  toMarkerArray(visualization_msgs::MarkerArray::Ptr& msg);
+  toMarkerArray(visualization_msgs::MarkerArray::Ptr& msg,
+                bool remove_head_in_rviz = false);
 
   void
   toSkeletonMarkerArray(visualization_msgs::MarkerArray::Ptr& msg);
