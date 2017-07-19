@@ -46,8 +46,8 @@ PoseRecognition::PoseRecognition():
     throw std::runtime_error("No body limbs enabled for recognition");
   m_per_skeleton_score_fusion_policy =
       m_private_nh.param("per_skeleton_score_fusion_policy", 0);
-  m_per_gallery_pose_score_fusion_policy =
-      m_private_nh.param("per_gallery_pose_score_fusion_policy", 0);
+  m_per_gallery_frame_pose_score_fusion_policy =
+      m_private_nh.param("per_gallery_frame_pose_score_fusion_policy", 0);
   m_publisher = m_nh.advertise<opt_msgs::PoseRecognitionArray>
       ("/recognizer/poses", 1);
   readGalleryPoses();
@@ -64,6 +64,8 @@ PoseRecognition::skeletonCallback
 (const opt_msgs::StandardSkeletonTrackArrayConstPtr &standard_data,
  const opt_msgs::SkeletonTrackArrayConstPtr &data)
 {
+  if (data->tracks.size() != standard_data->tracks.size())
+    return;
   opt_msgs::PoseRecognitionArray debug_recognition_array_msg;
   visualization_msgs::MarkerArray predicted_pose_marker, marker_array;
 
@@ -152,7 +154,9 @@ PoseRecognition::skeletonCallback
             return std::isnan(to_add)?result:result+to_add;
           };
           m_per_frame_scores[pose_id][frame_id] = std::accumulate(
-                scores.begin(), scores.end(), 0.0, acc_lambda) * 0.2;
+                scores.begin(), scores.end(), 0.0, acc_lambda)
+              / std::count_if(scores.begin(), scores.end(),
+                              [](const double v){return not std::isnan(v);});
           break;
         }
         case 1: // worst score policy
@@ -168,7 +172,7 @@ PoseRecognition::skeletonCallback
         } // switch
       } // for frame_id
       // score fusion per pose
-      switch(m_per_gallery_pose_score_fusion_policy)
+      switch(m_per_gallery_frame_pose_score_fusion_policy)
       {
       case 0: // best match
       {
@@ -195,6 +199,12 @@ PoseRecognition::skeletonCallback
         m_final_scores[pose_id] = m_per_frame_scores[pose_id][median_id];
         break;
       }
+      case 3: //worst match
+      {
+        m_final_scores[pose_id] =
+            *std::max(m_per_frame_scores[pose_id].begin(),
+                      m_per_frame_scores[pose_id].end());
+      }
       } // switch
     } // for pose_id
     // result
@@ -202,7 +212,11 @@ PoseRecognition::skeletonCallback
     recognition_msg.header = standard_data->header;
     recognition_msg.gallery_poses.resize(m_final_scores.size());
     // sort m_final_scores based on the second field
-    std::map<double, size_t> dst = flip_map(m_final_scores); // no multimap because the probability that two scores are the same is really low
+    std::map<double, size_t> dst = flip_map(m_final_scores);
+    // theoretically flip_map should return a multimap,
+    // but because the probability that two scores are the same is really low
+    // When it happens the values are overwritten and I will loose
+    // a couple of recognition ids
     opt_msgs::PosePredictionResult max_pr;
     if ((dst.begin())->first < m_threshold)
     {
@@ -257,11 +271,10 @@ PoseRecognition::skeletonCallback
     text_pose_name.pose.orientation.y = 0.0;
     text_pose_name.pose.orientation.z = 0.0;
     text_pose_name.pose.orientation.w = 1.0;
-    text_pose_name.color.r = 1.0;
-    text_pose_name.color.a = 1.0;
+    text_pose_name.color = sk2.color;
     predicted_pose_marker.markers.push_back(text_pose_name);
-    for(size_t k = 0, end_k = recognition_msg.gallery_poses.size();
-        k != end_k; ++k)
+    for(size_t k = 0, size_k = recognition_msg.gallery_poses.size();
+        k != size_k; ++k)
     {
       const opt_msgs::PosePredictionResult& ppr =
           recognition_msg.gallery_poses[k];
@@ -272,7 +285,8 @@ PoseRecognition::skeletonCallback
       text_pose_score.header = text_pose_id.header;
       text_pose_score.ns = "recognition_score";
       text_pose_id.ns = "recognition_id";
-      text_pose_score.id = text_pose_id.id = k + skel_id * standard_data->tracks.size();
+      text_pose_score.id = text_pose_id.id =
+          k + skel_id * size_k;
       text_pose_score.type = text_pose_id.type =
           visualization_msgs::Marker::TEXT_VIEW_FACING;
       text_pose_score.action = text_pose_id.action =
@@ -285,7 +299,8 @@ PoseRecognition::skeletonCallback
       text_pose_score.text = ss2.str();
       text_pose_score.pose.position.x = sk2.joints[SkeletonJoints::CHEST].x;
       text_pose_score.pose.position.y = sk2.joints[SkeletonJoints::CHEST].y;
-      text_pose_score.pose.position.z = sk2.joints[SkeletonJoints::CHEST].z + 1.0 + (k + 1) * 0.2;
+      text_pose_score.pose.position.z =
+          sk2.joints[SkeletonJoints::CHEST].z + 1.0 + (k + 1) * 0.2;
 //      text_pose_score.pose.position.x = 0.0;
 //      text_pose_score.pose.position.y = 0.0;
 //      text_pose_score.pose.position.z = (k + 1) * 1.0;
@@ -294,24 +309,25 @@ PoseRecognition::skeletonCallback
       text_pose_score.pose.orientation.z = 0.0;
       text_pose_score.pose.orientation.w = 1.0;
       text_pose_id.pose = text_pose_score.pose;
-      text_pose_id.pose.position.x += 1.0;
+      text_pose_id.pose.position.x += 2.0;
       text_pose_score.scale.x = 0.34;
       text_pose_score.scale.y = 0.34;
       text_pose_score.scale.z = 0.34;
-      if (k == 0 and ppr.score < m_threshold)
-      {
-        text_pose_score.color.r = 0.0;
-        text_pose_score.color.g = 1.0;
-        text_pose_score.color.b = 0.0;
-        text_pose_score.color.a = 1.0;
-      }
-      else
-      {
-        text_pose_score.color.r = 1.0;
-        text_pose_score.color.g = 0.0;
-        text_pose_score.color.b = 0.0;
-        text_pose_score.color.a = 1.0;
-      }
+      text_pose_score.color = sk2.color;
+//      if (k == 0 and ppr.score < m_threshold)
+//      {
+//        text_pose_score.color.r = 0.0;
+//        text_pose_score.color.g = 1.0;
+//        text_pose_score.color.b = 0.0;
+//        text_pose_score.color.a = 1.0;
+//      }
+//      else
+//      {
+//        text_pose_score.color.r = 1.0;
+//        text_pose_score.color.g = 0.0;
+//        text_pose_score.color.b = 0.0;
+//        text_pose_score.color.a = 1.0;
+//      }
       text_pose_score.lifetime = ros::Duration(0.2);
       text_pose_id.color = text_pose_score.color;
       text_pose_id.scale = text_pose_score.scale;
@@ -322,7 +338,8 @@ PoseRecognition::skeletonCallback
     //    }
     m_rviz_publisher.publish(marker_array);
     m_rviz2_publisher.publish(predicted_pose_marker);
-  }
+    skel_id++;
+  } // tracks (skel_id)
   // publish the result
   debug_recognition_array_msg.header =
       debug_recognition_array_msg.poses[0].header;

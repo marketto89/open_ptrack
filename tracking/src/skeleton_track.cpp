@@ -72,13 +72,13 @@ SkeletonTrack::SkeletonTrack(int id,
   for(size_t i = 0; i < SkeletonJoints::SIZE; ++i)
   {
     joint_tracks_[i] = new Track3D(
-                              id,
-                              frame_id,
-                              position_variance,
-                              acceleration_variance,
-                              period,
-                              velocity_in_motion_term
-                              );
+          id,
+          frame_id,
+          position_variance,
+          acceleration_variance,
+          period,
+          velocity_in_motion_term
+          );
   }
   debug_count_ = -1;
 }
@@ -173,6 +173,13 @@ SkeletonTrack::update(
                                  Eigen::Vector3d(bj.x, bj.y, bj.z).norm(),
                                  detection_source
                                  );
+        bool first_update = true;
+        joint_tracks_[i] -> update(
+              bj.x, bj.y, bj.z, 10,
+              Eigen::Vector3d(bj.x, bj.y, bj.z).norm(), bj.confidence,
+              bj.confidence - 1, bj.confidence + 1, 0,
+              detection_source, first_update
+              );
       }
     }
   }
@@ -197,6 +204,10 @@ SkeletonTrack::toMsg(opt_msgs::SkeletonTrack& track_msg, bool vertical)
   track_msg.height = z_;
   track_msg.distance = distance_;
   track_msg.age = age_;
+  track_msg.color.a = 1.0;
+  track_msg.color.r = color_(2);
+  track_msg.color.g = color_(1);
+  track_msg.color.b = color_(0);
 
   track_msg.confidence = - data_association_score_;   // minus for transforming distance into a sort of confidence
   track_msg.visibility = visibility_;
@@ -220,7 +231,7 @@ SkeletonTrack::toMsg(opt_msgs::SkeletonTrack& track_msg, bool vertical)
     track_msg.box_2D.y = int(top(1)) - track_msg.box_2D.width / 4;
   }
   track_msg.joints.resize(joint_tracks_.size());
-//  SkeletonTrack::bodyPoseMsgToTrackerMsg(track_msg);
+  //  SkeletonTrack::bodyPoseMsgToTrackerMsg(track_msg);
   for(size_t i = 0; i < SkeletonJoints::SIZE; ++i)
   {
     Track3D* t = joint_tracks_[i];
@@ -315,114 +326,114 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg)
     {
       const geometry_msgs::Point& p1 = joint_tracks_[it->first]->getState();
       const geometry_msgs::Point& p2 = joint_tracks_[it->second]->getState();
-//      if( isValid(p1)
-//          and
-//          isValid(p2))
-//      {
-        visualization_msgs::Marker line_marker;
-        line_marker.header.frame_id = frame_id_;
-        line_marker.header.stamp = now;
-        line_marker.ns = "links_valid";
-        line_marker.id = (it - SkeletonLinks::LINKS.begin())
-            + (id_ - 1) * SkeletonLinks::LINKS.size() * 2;
-        line_marker.type = visualization_msgs::Marker::LINE_STRIP;
-        line_marker.action = visualization_msgs::Marker::ADD;
-        line_marker.pose.orientation.x = 0.0;
-        line_marker.pose.orientation.y = 0.0;
-        line_marker.pose.orientation.z = 0.0;
-        line_marker.pose.orientation.w = 1.0;
-        line_marker.scale.x = 0.1;
-        line_marker.scale.y = 0.1;
-        line_marker.scale.z = 0.1;
-        line_marker.color.r = color_(2);
-        line_marker.color.g = color_(1);
-        line_marker.color.b = color_(0);
-        line_marker.color.a = 1.0;
+      //      if( isValid(p1)
+      //          and
+      //          isValid(p2))
+      //      {
+      visualization_msgs::Marker line_marker;
+      line_marker.header.frame_id = frame_id_;
+      line_marker.header.stamp = now;
+      line_marker.ns = "links_valid";
+      line_marker.id = (it - SkeletonLinks::LINKS.begin())
+          + (id_ - 1) * SkeletonLinks::LINKS.size() * 2;
+      line_marker.type = visualization_msgs::Marker::LINE_STRIP;
+      line_marker.action = visualization_msgs::Marker::ADD;
+      line_marker.pose.orientation.x = 0.0;
+      line_marker.pose.orientation.y = 0.0;
+      line_marker.pose.orientation.z = 0.0;
+      line_marker.pose.orientation.w = 1.0;
+      line_marker.scale.x = 0.1;
+      line_marker.scale.y = 0.1;
+      line_marker.scale.z = 0.1;
+      line_marker.color.r = color_(2);
+      line_marker.color.g = color_(1);
+      line_marker.color.b = color_(0);
+      line_marker.color.a = 1.0;
 
-        line_marker.lifetime = ros::Duration(0.2);
-        line_marker.points.push_back(p1);
-        line_marker.points.push_back(p2);
-        line_marker.colors.push_back(color_random);
-        line_marker.colors.push_back(color_random);
-        msg->markers.push_back(line_marker);
-//      }
+      line_marker.lifetime = ros::Duration(0.2);
+      line_marker.points.push_back(p1);
+      line_marker.points.push_back(p2);
+      line_marker.colors.push_back(color_random);
+      line_marker.colors.push_back(color_random);
+      msg->markers.push_back(line_marker);
+      //      }
     }
   } // areJointsInitialized
-//  else
-//  {
-    // Joint Markers
-    for(int i = 0, end = SkeletonJoints::SIZE; i != end; ++i)
+  //  else
+  //  {
+  // Joint Markers
+  for(int i = 0, end = SkeletonJoints::SIZE; i != end; ++i)
+  {
+    if ( not isValid(raw_joints_tmp_[i])) continue;
+    visualization_msgs::Marker joint_marker;
+    joint_marker.header.frame_id = frame_id_;
+    joint_marker.header.stamp = now;
+    joint_marker.ns = "joints_raw";
+    joint_marker.id = i + id_ * SkeletonJoints::SIZE * 2
+        + SkeletonJoints::SIZE;
+    joint_marker.type = visualization_msgs::Marker::CUBE;
+    joint_marker.action = visualization_msgs::Marker::ADD;
+    joint_marker.pose.position = getGeomMsgsPoint(raw_joints_tmp_[i]);
+    joint_marker.pose.orientation.x = 0.0;
+    joint_marker.pose.orientation.y = 0.0;
+    joint_marker.pose.orientation.z = 0.0;
+    joint_marker.pose.orientation.w = 1.0;
+    joint_marker.scale.x = 0.06;
+    joint_marker.scale.y = 0.06;
+    joint_marker.scale.z = 0.06;
+    //      joint_marker.color.r = color_(2);
+    //      joint_marker.color.g = color_(1);
+    //      joint_marker.color.b = color_(0);
+    joint_marker.color.r = 1.0;
+    joint_marker.color.g = 0.0;
+    joint_marker.color.b = 0.0;
+    joint_marker.color.a = 1.0;
+
+    joint_marker.lifetime = ros::Duration(0.2);
+
+    msg->markers.push_back(joint_marker);
+  }
+  // Link markers
+  for(auto it = SkeletonLinks::LINKS.begin(), end = SkeletonLinks::LINKS.end();
+      it != end; ++it)
+  {
+    const rtpose_wrapper::Joint3DMsg& p1 = raw_joints_tmp_[it->first];
+    const rtpose_wrapper::Joint3DMsg& p2 = raw_joints_tmp_[it->second];
+    if( isValid(p1)
+        and
+        isValid(p2))
     {
-      if ( not isValid(raw_joints_tmp_[i])) continue;
-      visualization_msgs::Marker joint_marker;
-      joint_marker.header.frame_id = frame_id_;
-      joint_marker.header.stamp = now;
-      joint_marker.ns = "joints_raw";
-      joint_marker.id = i + id_ * SkeletonJoints::SIZE * 2
-          + SkeletonJoints::SIZE;
-      joint_marker.type = visualization_msgs::Marker::CUBE;
-      joint_marker.action = visualization_msgs::Marker::ADD;
-      joint_marker.pose.position = getGeomMsgsPoint(raw_joints_tmp_[i]);
-      joint_marker.pose.orientation.x = 0.0;
-      joint_marker.pose.orientation.y = 0.0;
-      joint_marker.pose.orientation.z = 0.0;
-      joint_marker.pose.orientation.w = 1.0;
-      joint_marker.scale.x = 0.06;
-      joint_marker.scale.y = 0.06;
-      joint_marker.scale.z = 0.06;
-      //      joint_marker.color.r = color_(2);
-      //      joint_marker.color.g = color_(1);
-      //      joint_marker.color.b = color_(0);
-      joint_marker.color.r = 1.0;
-      joint_marker.color.g = 0.0;
-      joint_marker.color.b = 0.0;
-      joint_marker.color.a = 1.0;
+      visualization_msgs::Marker line_marker;
+      line_marker.header.frame_id = frame_id_;
+      line_marker.header.stamp = now;
+      line_marker.ns = "links_raw";
+      line_marker.id = (it - SkeletonLinks::LINKS.begin())
+          + (id_ - 1) * SkeletonLinks::LINKS.size() * 2 + SkeletonLinks::LINKS.size();
+      line_marker.type = visualization_msgs::Marker::LINE_STRIP;
+      line_marker.action = visualization_msgs::Marker::ADD;
+      line_marker.pose.orientation.x = 0.0;
+      line_marker.pose.orientation.y = 0.0;
+      line_marker.pose.orientation.z = 0.0;
+      line_marker.pose.orientation.w = 1.0;
+      line_marker.scale.x = 0.1;
+      line_marker.scale.y = 0.1;
+      line_marker.scale.z = 0.1;
+      line_marker.color.r = 1.0;
+      line_marker.color.g = 0.0;
+      line_marker.color.b = 0.0;
+      //        line_marker.color.r = color_(2);
+      //        line_marker.color.g = color_(1);
+      //        line_marker.color.b = color_(0);
+      line_marker.color.a = 1.0;
 
-      joint_marker.lifetime = ros::Duration(0.2);
-
-      msg->markers.push_back(joint_marker);
+      line_marker.lifetime = ros::Duration(0.2);
+      line_marker.points.push_back(getGeomMsgsPoint(p1));
+      line_marker.points.push_back(getGeomMsgsPoint(p2));
+      line_marker.colors.push_back(red);
+      line_marker.colors.push_back(red);
+      msg->markers.push_back(line_marker);
     }
-    // Link markers
-    for(auto it = SkeletonLinks::LINKS.begin(), end = SkeletonLinks::LINKS.end();
-        it != end; ++it)
-    {
-      const rtpose_wrapper::Joint3DMsg& p1 = raw_joints_tmp_[it->first];
-      const rtpose_wrapper::Joint3DMsg& p2 = raw_joints_tmp_[it->second];
-      if( isValid(p1)
-          and
-          isValid(p2))
-      {
-        visualization_msgs::Marker line_marker;
-        line_marker.header.frame_id = frame_id_;
-        line_marker.header.stamp = now;
-        line_marker.ns = "links_raw";
-        line_marker.id = (it - SkeletonLinks::LINKS.begin())
-            + (id_ - 1) * SkeletonLinks::LINKS.size() * 2 + SkeletonLinks::LINKS.size();
-        line_marker.type = visualization_msgs::Marker::LINE_STRIP;
-        line_marker.action = visualization_msgs::Marker::ADD;
-        line_marker.pose.orientation.x = 0.0;
-        line_marker.pose.orientation.y = 0.0;
-        line_marker.pose.orientation.z = 0.0;
-        line_marker.pose.orientation.w = 1.0;
-        line_marker.scale.x = 0.1;
-        line_marker.scale.y = 0.1;
-        line_marker.scale.z = 0.1;
-        line_marker.color.r = 1.0;
-        line_marker.color.g = 0.0;
-        line_marker.color.b = 0.0;
-//        line_marker.color.r = color_(2);
-//        line_marker.color.g = color_(1);
-//        line_marker.color.b = color_(0);
-        line_marker.color.a = 1.0;
-
-        line_marker.lifetime = ros::Duration(0.2);
-        line_marker.points.push_back(getGeomMsgsPoint(p1));
-        line_marker.points.push_back(getGeomMsgsPoint(p2));
-        line_marker.colors.push_back(red);
-        line_marker.colors.push_back(red);
-        msg->markers.push_back(line_marker);
-      }
-//    }
+    //    }
   }
 
   // Track ID over head
