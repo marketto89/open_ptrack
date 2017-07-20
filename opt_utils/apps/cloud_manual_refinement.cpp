@@ -65,88 +65,88 @@ typedef pcl::PointCloud<PointT> PointCloudT;
 PointCloudT::Ptr refined_cloud(new PointCloudT);
 //// Output publisher:
 ros::Publisher refined_cloud_pub;
+std::string camera_name;
 //tf::TransformListener* tf_listener;
 
 Eigen::Transform<double, 3, Eigen::Affine> affine;
+Eigen::Affine3d affine_world;
 bool stop = false;
-
-//Eigen::Affine3d
-//readMatrixFromFile (std::string filename)
-//{
-//  Eigen::Affine3d matrix;
-//  std::string line;
-//  std::ifstream myfile (filename.c_str());
-//  if (myfile.is_open())
-//  {
-//    int k = 0;
-//    std::string number;
-//    while (myfile >> number)
-//    {
-//      if (int(k/4) < matrix.Rows)
-//      {
-//        matrix(int(k/4), int(k%4)) = std::atof(number.c_str());
-//      }
-//      k++;
-//    }
-//    myfile.close();
-//  }
-
-//  std::cout << matrix.matrix() << std::endl;
-
-//  return matrix;
-//}
+double voxel_x, voxel_y, voxel_z;
+std::string frame_id;
+tf::TransformListener* tf_listener;
+Eigen::Affine3d extrinsic_transform_matrix = Eigen::Affine3d::Identity();
 
 void
 cloud_cb (const PointCloudT::ConstPtr& callback_cloud)
 {
+  camera_name = frame_id = callback_cloud->header.frame_id;
+  tf::StampedTransform extrinsic_transform;
+  tf_listener->waitForTransform(frame_id, "world", ros::Time(0), ros::Duration(0.5));
+  tf_listener->lookupTransform(frame_id, "world", ros::Time(0), extrinsic_transform);
+  tf::transformTFToEigen(extrinsic_transform, extrinsic_transform_matrix);
+
   // Create the filtering object
   PointCloudT cloud_filtered;
   pcl::VoxelGrid<PointT> sor;
   sor.setInputCloud (callback_cloud);
-  sor.setLeafSize (0.05f, 0.05f, 0.05f);
+  sor.setLeafSize (voxel_x, voxel_y, voxel_z);
   sor.filter (cloud_filtered);
 
-  pcl::transformPointCloud(cloud_filtered, *refined_cloud, affine);
+  pcl::transformPointCloud(cloud_filtered, *refined_cloud,
+                           extrinsic_transform_matrix *
+                           affine *
+                           extrinsic_transform_matrix.inverse());
+//  pcl::transformPointCloud(cloud_filtered, *refined_cloud, affine);
+////  transform back to the correct frame_id
+//  pcl::transformPointCloud(*refined_cloud, *refined_cloud,
+//                           extrinsic_transform_matrix);
+
   refined_cloud_pub.publish(*refined_cloud);
 }
-//  // Copy cloud data:
-//  *refined_cloud = cloud_filtered;
 
-//  tf::StampedTransform extrinsic_transform;
-//  Eigen::Affine3d extrinsic_transform_matrix;
-//  tf_listener->waitForTransform("world", callback_cloud->header.frame_id, ros::Time(0), ros::Duration(0.5));
-//  tf_listener->lookupTransform("world", callback_cloud->header.frame_id, ros::Time(0), extrinsic_transform);
-//  tf::transformTFToEigen(extrinsic_transform, extrinsic_transform_matrix);
-//  Eigen::Affine3d final_transform = registration_matrix * extrinsic_transform_matrix;
+void
+save_cb(const std_msgs::EmptyConstPtr& e)
+{
+  stop = true;
+}
+void
+save2_cb(const std_msgs::EmptyConstPtr& e)
+{
+  stop = true;
+}
 
-//  pcl::transformPointCloud (*refined_cloud, *refined_cloud, final_transform);
-//  //  for (unsigned int i = 0; i < refined_cloud->size(); i++)
-//  //  {
-//  //    refined_cloud->points[i] = pcl::transformPoint(refined_cloud->points[i], final_transform);
-//  //  }
-
-//  refined_cloud->header = callback_cloud->header;
-//  ros::Time curr_time = ros::Time::now();
-//  refined_cloud->header.stamp = curr_time.toNSec() / 1000;
-//  refined_cloud->header.frame_id = "world";
-//  refined_cloud_pub.publish(*refined_cloud);
-//}
+void
+saveRegistrationMatrix (std::string filename, Eigen::Matrix4d transformation)
+{
+  std::ofstream myfile;
+  myfile.open (filename.c_str());
+  myfile << transformation;
+  myfile.close();
+}
 
 void configCallback(opt_utils::ManualCalibrationConfig &config,
                     uint32_t level)
 {
-  stop = false;
-  affine = Eigen::Translation3d(config.trs_x, config.trs_y, config.trs_z)
+  affine =
+      Eigen::Translation3d(config.trs_x, config.trs_y, config.trs_z)
       * Eigen::AngleAxisd(config.rot_x, Eigen::Vector3d::UnitX())
       * Eigen::AngleAxisd(config.rot_y, Eigen::Vector3d::UnitY())
       * Eigen::AngleAxisd(config.rot_z, Eigen::Vector3d::UnitZ());
-  // check when to stop
-  if(config.stop) stop = true;
+  if(config.voxel_z + config.voxel_y + config.voxel_x != 0)
+  {
+    voxel_x = config.voxel_x;
+    voxel_y = config.voxel_y;
+    voxel_z = config.voxel_z;
+  }
+  // transform affine from world to camera frame
+  ROS_INFO_STREAM(camera_name << affine.matrix());
 }
 
 int
 main (int argc, char** argv)
 {
+  stop = false;
+
   ros::init(argc, argv, "cloud_refinement");
   ros::NodeHandle nh("~");
 
@@ -159,13 +159,22 @@ main (int argc, char** argv)
   double rate_value;
   nh.param("rate", rate_value, 30.0);
 
-  //  tf_listener = new tf::TransformListener();
+  tf_listener = new tf::TransformListener();
 
   // Subscribers:
   ros::Subscriber sub = nh.subscribe<PointCloudT>(input_topic, 1, cloud_cb);
+  ros::Subscriber sub2 = nh.subscribe<std_msgs::Empty>("save",1, save_cb);
+  ros::Subscriber sub3 = nh.subscribe<std_msgs::Empty>("/save_all",1, save2_cb);
 
   // Publishers:
   refined_cloud_pub = nh.advertise<PointCloudT>(output_topic, 1);
+
+  dynamic_reconfigure::Server<opt_utils::ManualCalibrationConfig> server;
+  dynamic_reconfigure::Server<opt_utils::ManualCalibrationConfig>::CallbackType
+      f;
+
+  f = boost::bind(&configCallback, _1, _2);
+  server.setCallback(f);
 
   ros::Rate rate(rate_value);
   while(ros::ok() and not stop)
@@ -175,6 +184,21 @@ main (int argc, char** argv)
     rate.sleep();
   }
 
+//  if(stop)
+//  {
+//    ROS_INFO_STREAM("Saving");
+//    //save file
+//    if (strcmp(camera_name.substr(0,1).c_str(), "/") == 0)  // Remove bar at the beginning
+//    {
+//      camera_name = camera_name.substr(1, camera_name.size() - 1);
+//    }
+//    std::string refinement_filename = ros::package::getPath("opt_calibration") + "/conf/registration_" + camera_name + ".txt";
+//    if( boost::filesystem::exists(refinement_filename))
+//    {
+//      boost::filesystem::rename(refinement_filename, refinement_filename + "_old");
+//    }
+//    saveRegistrationMatrix(refinement_filename, affine_world.matrix());
+//  }
   ros::shutdown();
   return 0;
 }
