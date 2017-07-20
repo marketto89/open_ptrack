@@ -64,15 +64,22 @@ PoseRecognition::skeletonCallback
 (const opt_msgs::StandardSkeletonTrackArrayConstPtr &standard_data,
  const opt_msgs::SkeletonTrackArrayConstPtr &data)
 {
+
   opt_msgs::PoseRecognitionArray recognition_array_msg;
   visualization_msgs::MarkerArray predicted_pose_marker, marker_array;
 
   if(data->tracks.size() != standard_data->tracks.size()) return;
-
   for (size_t skel_id = 0, skel_size = standard_data->tracks.size();
        skel_id != skel_size; ++skel_id)
   {
-    const opt_msgs::StandardSkeletonTrack& observed_st_sk = standard_data->tracks[skel_id];
+    const opt_msgs::StandardSkeletonTrack& observed_st_sk =
+        standard_data->tracks[skel_id];
+    const opt_msgs::SkeletonTrack& sk2 = data->tracks[skel_id];
+    if(sk2.visibility == opt_msgs::StandardSkeletonTrack::OCCLUDED
+       or
+       sk2.visibility == opt_msgs::StandardSkeletonTrack::NOT_VISIBLE)
+      return;
+
     // sk already in standard pose
     Eigen::Matrix<double, 6, 1> r_arm;
     Eigen::Matrix<double, 6, 1> l_arm;
@@ -243,7 +250,20 @@ PoseRecognition::skeletonCallback
     recognition_array_msg.poses.push_back(recognition_msg);
     // visualization marker output
     ros::Time time = ros::Time::now();
-    const opt_msgs::SkeletonTrack& sk2 = data->tracks[skel_id];
+
+    if(sk2.visibility == opt_msgs::StandardSkeletonTrack::OCCLUDED
+       or
+       sk2.visibility == opt_msgs::StandardSkeletonTrack::NOT_VISIBLE)
+      return;
+    std::cout << std::endl;
+    std::cout << "AGE: " << sk2.age <<std::endl;
+    std::cout << "C: " << sk2.confidence <<std::endl;
+    std::cout << "D: " << sk2.distance <<std::endl;
+    std::cout << "H: " << sk2.height <<std::endl;
+    std::cout << "ID: " << sk2.id <<std::endl;
+    std::cout << "V: " << sk2.visibility <<std::endl;
+    std::cout << "X: " << sk2.x <<std::endl;
+    std::cout << "Y: " << sk2.y <<std::endl;
     if(Eigen::Vector3d(sk2.joints[SkeletonJoints::CHEST].x,
                        sk2.joints[SkeletonJoints::CHEST].y,
                        sk2.joints[SkeletonJoints::CHEST].z).norm() < 0.01f)
@@ -260,9 +280,9 @@ PoseRecognition::skeletonCallback
     std::stringstream ss;
     ss << recognition_msg.best_prediction_result.pose_name;
     text_pose_name.text = ss.str();
-//    ROS_INFO_STREAM(sk2.joints[SkeletonJoints::CHEST].x
-//        << "," << sk2.joints[SkeletonJoints::CHEST].y
-//        << "," << sk2.joints[SkeletonJoints::CHEST].z);
+    //    ROS_INFO_STREAM(sk2.joints[SkeletonJoints::CHEST].x
+    //        << "," << sk2.joints[SkeletonJoints::CHEST].y
+    //        << "," << sk2.joints[SkeletonJoints::CHEST].z);
     text_pose_name.pose.position.x = sk2.joints[SkeletonJoints::CHEST].x;
     text_pose_name.pose.position.y = sk2.joints[SkeletonJoints::CHEST].y;
     text_pose_name.pose.position.z = sk2.joints[SkeletonJoints::CHEST].z + 1.0;
@@ -274,6 +294,7 @@ PoseRecognition::skeletonCallback
     text_pose_name.pose.orientation.z = 0.0;
     text_pose_name.pose.orientation.w = 1.0;
     text_pose_name.color = sk2.color;
+
     predicted_pose_marker.markers.push_back(text_pose_name);
     for(size_t k = 0, size_k = recognition_msg.gallery_poses.size();
         k != size_k; ++k)
