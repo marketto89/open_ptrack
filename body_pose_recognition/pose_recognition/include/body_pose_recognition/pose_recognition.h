@@ -89,7 +89,7 @@ private:
   // how to fuse scores from different gallery frames of the same pose
   uint m_per_gallery_frame_pose_score_fusion_policy;
   double m_threshold;
-  ros::Publisher m_publisher, m_rviz_publisher, m_rviz2_publisher;
+  ros::Publisher m_publisher, m_rviz_debug_publisher, m_rviz_publisher;
 
 
   void

@@ -53,7 +53,7 @@ PoseRecognition::PoseRecognition():
   readGalleryPoses();
   m_rviz_publisher = m_nh.advertise<visualization_msgs::MarkerArray>
       ("/recognizer/markers_debug", 1);
-  m_rviz2_publisher = m_nh.advertise<visualization_msgs::MarkerArray>
+  m_rviz_debug_publisher = m_nh.advertise<visualization_msgs::MarkerArray>
       ("/recognizer/markers", 1);
   m_sync.registerCallback(boost::bind(&PoseRecognition::skeletonCallback,
                                       this, _1, _2));
@@ -343,7 +343,7 @@ PoseRecognition::skeletonCallback
       marker_array.markers.push_back(text_pose_score);
     }
     m_rviz_publisher.publish(marker_array);
-    m_rviz2_publisher.publish(predicted_pose_marker);
+    m_rviz_debug_publisher.publish(predicted_pose_marker);
   } // standard tracks (skel_id)
   // publish the result
   recognition_array_msg.header.frame_id = data->header.frame_id;
@@ -374,6 +374,7 @@ PoseRecognition::readGalleryPoses()
     const uint pose_id = std::atoi(row[0].c_str());
     const uint n_frames = std::atoi(row[1].c_str());
     const std::string& pose_name = row[2];
+
     std::cout << "Reading: " << pose_id << " named \""
               << pose_name << "\"" << std::endl;
     // check if exists and if there are frames
