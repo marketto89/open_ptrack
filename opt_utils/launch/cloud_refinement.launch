@@ -1,28 +1,28 @@
 <?xml version="1.0"?>
 <launch>
 	
-  <arg name="sensor_name"      default="kinect_master" />
-  <arg name="sensor_name2"     default="kinect_sager" />
-  <arg name="sensor_name3"     default="kinect_boxxx" /><!--
+  <arg name="sensor_name1"     default="kinect_01" />
+  <arg name="sensor_name2"     default="kinect_02" />
+  <arg name="sensor_name3"     default="kinect_03" />
   <arg name="sensor_name4"     default="kinect_04" />
   <arg name="sensor_name5"     default="kinect_05" />
-  <arg name="sensor_name6"     default="kinect_06" />-->
+  <arg name="sensor_name6"     default="kinect_06" />
   <!-- Republish sensor point cloud after applying refinement -->
-  <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name)" output="screen">
-    <remap from="~input"        		to="/$(arg sensor_name)/depth_ir/points" />
-    <remap from="~output"       		to="/$(arg sensor_name)/depth_ir/points_refined" />
+  <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name1)" output="screen">
+    <remap from="~input"        		to="/$(arg sensor_name1)/depth_ir/points" />
+    <remap from="~output"       		to="/$(arg sensor_name1)/depth_ir/points_refined" />
   </node>
 
-<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name)_2" output="screen">
+<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name2)" output="screen">
   <remap from="~input"        		to="/$(arg sensor_name2)/depth_ir/points" />
   <remap from="~output"       		to="/$(arg sensor_name2)/depth_ir/points_refined" />
 </node>
 
-<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name)_3" output="screen">
+<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name3)" output="screen">
   <remap from="~input"        		to="/$(arg sensor_name3)/depth_ir/points" />
   <remap from="~output"       		to="/$(arg sensor_name3)/depth_ir/points_refined" />
 </node>
-  <!--<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name4)" output="screen">
+  <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name4)" output="screen">
     <remap from="~input"        		to="/$(arg sensor_name4)/depth_ir/points" />
     <remap from="~output"       		to="/$(arg sensor_name4)/depth_ir/points_refined" />
   </node>
@@ -35,7 +35,7 @@
 <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name6)" output="screen">
   <remap from="~input"        		to="/$(arg sensor_name6)/depth_ir/points" />
   <remap from="~output"       		to="/$(arg sensor_name6)/depth_ir/points_refined" />
-</node>-->
+</node>
 
 </launch>
 
