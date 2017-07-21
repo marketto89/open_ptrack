@@ -364,6 +364,10 @@ SkeletonTracker::toMarkerArray(visualization_msgs::MarkerArray::Ptr &msg,
       it = tracks_.begin(); it != tracks_.end(); it++)
   {
     open_ptrack::tracking::SkeletonTrack* t = *it;
+    if(t->getVisibility() == open_ptrack::tracking::SkeletonTrack::OCCLUDED
+       or
+       t->getVisibility() == open_ptrack::tracking::SkeletonTrack::NOT_VISIBLE)
+      continue;
     t->createMarker(msg, remove_head_in_rviz);
   }
 }

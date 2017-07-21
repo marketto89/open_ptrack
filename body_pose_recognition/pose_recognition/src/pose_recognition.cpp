@@ -118,8 +118,8 @@ PoseRecognition::skeletonCallback
         std::numeric_limits<double>::quiet_NaN(),
         std::numeric_limits<double>::quiet_NaN()
       };
-      for(uint frame_id = 0, end_frame_id = m_gallery_poses[pose_id].size();
-          frame_id != end_frame_id; ++frame_id)
+      for(uint frame_id = 0, n_frames = m_gallery_poses[pose_id].size();
+          frame_id != n_frames; ++frame_id)
       {
         if(m_use_right_arm)
         {
@@ -254,16 +254,7 @@ PoseRecognition::skeletonCallback
     if(sk2.visibility == opt_msgs::StandardSkeletonTrack::OCCLUDED
        or
        sk2.visibility == opt_msgs::StandardSkeletonTrack::NOT_VISIBLE)
-      return;
-    std::cout << std::endl;
-    std::cout << "AGE: " << sk2.age <<std::endl;
-    std::cout << "C: " << sk2.confidence <<std::endl;
-    std::cout << "D: " << sk2.distance <<std::endl;
-    std::cout << "H: " << sk2.height <<std::endl;
-    std::cout << "ID: " << sk2.id <<std::endl;
-    std::cout << "V: " << sk2.visibility <<std::endl;
-    std::cout << "X: " << sk2.x <<std::endl;
-    std::cout << "Y: " << sk2.y <<std::endl;
+      continue;
     if(Eigen::Vector3d(sk2.joints[SkeletonJoints::CHEST].x,
                        sk2.joints[SkeletonJoints::CHEST].y,
                        sk2.joints[SkeletonJoints::CHEST].z).norm() < 0.01f)
@@ -372,10 +363,10 @@ PoseRecognition::readGalleryPoses()
 
   FileRow row(',');
   poses_file >> row;
-  //  m_gallery_poses_names.resize(std::atoi(row[0].c_str()));
-  //  m_gallery_poses.resize(m_gallery_poses_names.size());
-  //  m_per_frame_scores.resize(m_gallery_poses.size());
-  //  m_final_scores.resize(m_gallery_poses.size());
+//    m_gallery_poses_names.resize(std::atoi(row[0].c_str()));
+//    m_gallery_poses.resize(m_gallery_poses_names.size());
+//    m_per_frame_scores.resize(m_gallery_poses.size());
+//    m_final_scores.resize(m_gallery_poses.size());
   //  std::vector<std::string> dirs_to_read(m_gallery_poses_names.size());
   //  std::vector<std::string> frames_to_read(m_gallery_poses_names.size());
   while(poses_file >> row)
@@ -383,6 +374,8 @@ PoseRecognition::readGalleryPoses()
     const uint pose_id = std::atoi(row[0].c_str());
     const uint n_frames = std::atoi(row[1].c_str());
     const std::string& pose_name = row[2];
+    std::cout << "Reading: " << pose_id << " named \""
+              << pose_name << "\"" << std::endl;
     // check if exists and if there are frames
     std::stringstream ss;
     ss << ros::package::getPath("gallery_poses") << "/data/" << pose_id;
@@ -399,6 +392,7 @@ PoseRecognition::readGalleryPoses()
     m_gallery_poses_names[pose_id] = pose_name;
     m_per_frame_scores[pose_id] = std::vector<double>(are_there_any_frames / 2);
     readMatricesForSinglePose(pose_id);
+
   }
 }
 

@@ -463,6 +463,7 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg,
   double& y = world_centroid[1];
   double& z = world_centroid[2];
 
+
   visualization_msgs::Marker text_marker;
   text_marker.header.frame_id = frame_id_;
   text_marker.header.stamp = ros::Time::now();
@@ -489,7 +490,8 @@ SkeletonTrack::createMarker(visualization_msgs::MarkerArray::Ptr& msg,
   text_marker.color.a = 1.0;
   text_marker.lifetime = ros::Duration(0.2);
 
-  msg->markers.push_back(text_marker);
+  if( fabs(x) > 0.001 or fabs(y) > 0.001 or fabs(z) > 0.001)
+    msg->markers.push_back(text_marker);
 }
 
 std::ostream&
