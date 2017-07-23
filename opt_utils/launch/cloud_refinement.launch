@@ -7,7 +7,10 @@
   <arg name="sensor_name4"     default="kinect_04" />
   <arg name="sensor_name5"     default="kinect_05" />
   <arg name="sensor_name6"     default="kinect_06" />
+<<<<<<< HEAD
   
+=======
+>>>>>>> ccb3ed3cf9ddfb3dbad51600bbdb53e558dd0e19
   <!-- Republish sensor point cloud after applying refinement -->
   <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name1)" output="screen">
     <remap from="~input"        		to="/$(arg sensor_name1)/depth_ir/points" />
@@ -23,6 +26,7 @@
   <remap from="~input"        		to="/$(arg sensor_name3)/depth_ir/points" />
   <remap from="~output"       		to="/$(arg sensor_name3)/depth_ir/points_refined" />
 </node>
+<<<<<<< HEAD
   <!-- Republish sensor point cloud after applying refinement -->
   <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name4)" output="screen">
     <remap from="~input"            to="/$(arg sensor_name4)/depth_ir/points" />
@@ -37,6 +41,21 @@
 <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name6)" output="screen">
   <remap from="~input"            to="/$(arg sensor_name6)/depth_ir/points" />
   <remap from="~output"           to="/$(arg sensor_name6)/depth_ir/points_refined" />
+=======
+  <node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name4)" output="screen">
+    <remap from="~input"        		to="/$(arg sensor_name4)/depth_ir/points" />
+    <remap from="~output"       		to="/$(arg sensor_name4)/depth_ir/points_refined" />
+  </node>
+
+<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name5)" output="screen">
+  <remap from="~input"        		to="/$(arg sensor_name5)/depth_ir/points" />
+  <remap from="~output"       		to="/$(arg sensor_name5)/depth_ir/points_refined" />
+</node>
+
+<node pkg="opt_utils" type="cloud_refinement" name="cloud_refinement_$(arg sensor_name6)" output="screen">
+  <remap from="~input"        		to="/$(arg sensor_name6)/depth_ir/points" />
+  <remap from="~output"       		to="/$(arg sensor_name6)/depth_ir/points_refined" />
+>>>>>>> ccb3ed3cf9ddfb3dbad51600bbdb53e558dd0e19
 </node>
 
 </launch>

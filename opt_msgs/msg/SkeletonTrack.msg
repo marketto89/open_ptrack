@@ -11,6 +11,8 @@ float64 distance
 float64 age
 float64 confidence
 
+std_msgs/ColorRGBA color
+
 uint8 visibility
 
 opt_msgs/BoundingBox2D box_2D

@@ -122,6 +122,7 @@ std::map<std::string, int> color_map;
 std::map<double, double> chi_map;
 bool velocity_in_motion_term;
 double acceleration_variance;
+bool remove_head_in_rviz;
 double position_variance_weight;
 double voxel_size;
 double gate_distance;
@@ -188,6 +189,8 @@ createVisMarker
   // Joint Markers
   for(int i = 0, end = SkeletonJoints::SIZE; i != end; ++i)
   {
+    if (remove_head_in_rviz)
+      if (i == SkeletonJoints::HEAD) continue;
     const rtpose_wrapper::Joint3DMsg& j = skel_det.getSkeletonMsg().joints[i];
     if (not std::isfinite(j.x + j.y + j.z)) continue;
     visualization_msgs::Marker joint_marker;
@@ -223,6 +226,10 @@ createVisMarker
       end = SkeletonLinks::LINKS.end();
       it != end; ++it)
   {
+    if (remove_head_in_rviz)
+      if (it->first == SkeletonJoints::HEAD
+          or it->second == SkeletonJoints::HEAD)
+        continue;
     geometry_msgs::Point p1;
     geometry_msgs::Point p2;
     const rtpose_wrapper::Joint3DMsg& j1 =
@@ -344,7 +351,8 @@ createVisMarker
   // Joint Markers
   for(int i = 0, end = SkeletonJoints::SIZE; i != end; ++i)
   {
-
+    if (remove_head_in_rviz)
+      if (i == SkeletonJoints::HEAD) continue;
     visualization_msgs::Marker joint_marker;
     joint_marker.header.frame_id = "world";
     joint_marker.header.stamp = time;
@@ -378,6 +386,10 @@ createVisMarker
       end = SkeletonLinks::LINKS.end();
       it != end; ++it)
   {
+    if (remove_head_in_rviz)
+      if (it->first == SkeletonJoints::HEAD
+          or it->second == SkeletonJoints::HEAD)
+        continue;
     size_t id = it - SkeletonLinks::LINKS.begin();
     geometry_msgs::Point p1;
     geometry_msgs::Point p2;
@@ -663,6 +675,12 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
         // Publish standard skeleton tracks (if needed)
         visualization_msgs::MarkerArray vis_markers_array,
             skeleton_detection_msg;
+        standard_tracking_results_msg->tracks.resize
+            ( tracking_results_msg->tracks.size());
+        standard_tracking_results_msg->header.frame_id =
+            tracking_results_msg->header.frame_id;
+        standard_tracking_results_msg->header.stamp =
+            tracking_results_msg->header.stamp;
         if(standard_skel_pub.getNumSubscribers() > 0
            or standard_skel_markers_pub.getNumSubscribers() > 0)
         {
@@ -678,13 +696,11 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
                             orientation_vector.head<2>(),
                             sp.getSkeleton().getJoints(),
                             frame_time);
-            standard_tracking_results_msg->tracks.push_back(new_t);
-            standard_tracking_results_msg->header =
-                tracking_results_msg->header;
+            standard_tracking_results_msg->tracks[i] = new_t;
           }
-          standard_skel_pub.publish(standard_tracking_results_msg);
-          standard_skel_markers_pub.publish(vis_markers_array);
         }
+        standard_skel_pub.publish(standard_tracking_results_msg);
+        standard_skel_markers_pub.publish(vis_markers_array);
       }
 
       // Publish IDs of active tracks:
@@ -698,7 +714,7 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
       if(output_markers)
       {
         marker_array_msg_.reset(new visualization_msgs::MarkerArray);
-        tracker->toMarkerArray(marker_array_msg_);
+        tracker->toMarkerArray(marker_array_msg_, remove_head_in_rviz);
         marker_pub.publish(marker_array_msg_);
       }
 
@@ -1028,6 +1044,8 @@ main(int argc, char** argv)
   double max_time_between_detections_d;
   nh.param("max_time_between_detections", max_time_between_detections_d, 10.0);
   max_time_between_detections_ = ros::Duration(max_time_between_detections_d);
+
+  nh.param("remove_head_in_rviz", remove_head_in_rviz, true);
 
   // Read number of sensors in the network:
   int num_cameras = 1;

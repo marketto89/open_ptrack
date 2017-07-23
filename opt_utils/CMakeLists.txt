@@ -14,6 +14,10 @@ find_package(PCL REQUIRED)
 find_package(Eigen REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS} include ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 
+generate_dynamic_reconfigure_options(
+  cfg/ManualCalibration.cfg
+)
+
 add_library(json src/json.cpp)
 target_link_libraries(json ${catkin_LIBRARIES})
 
@@ -40,3 +44,15 @@ target_link_libraries(udp_listener ${catkin_LIBRARIES})
 
 add_executable(cloud_refinement apps/cloud_refinement.cpp)
 target_link_libraries(cloud_refinement ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_executable(cloud_manual_refinement
+  apps/cloud_manual_refinement.cpp
+  )
+target_link_libraries(cloud_manual_refinement
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  )
+add_dependencies(cloud_manual_refinement
+  ${catkin_EXPORTED_TARGETS}
+  ${PROJECT_NAME}_gencfg
+  )

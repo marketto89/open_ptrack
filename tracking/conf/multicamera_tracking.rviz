@@ -35,7 +35,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -92,41 +92,89 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        kinect_01:
+          Value: true
+        kinect_01_ir_frame:
+          Value: true
+        kinect_01_ir_optical_frame:
+          Value: true
+        kinect_01_link:
+          Value: true
+        kinect_01_rgb_frame:
+          Value: true
+        kinect_01_rgb_optical_frame:
+          Value: true
+        kinect_02:
+          Value: true
+        kinect_02_ir_frame:
+          Value: true
+        kinect_02_ir_optical_frame:
+          Value: true
+        kinect_02_link:
+          Value: true
+        kinect_02_rgb_frame:
+          Value: true
+        kinect_02_rgb_optical_frame:
+          Value: true
+        kinect_03:
+          Value: true
+        kinect_03_ir_frame:
+          Value: true
+        kinect_03_ir_optical_frame:
+          Value: true
+        kinect_03_link:
+          Value: true
+        kinect_03_rgb_frame:
+          Value: true
+        kinect_03_rgb_optical_frame:
+          Value: true
+        kinect_04:
+          Value: true
+        kinect_04_ir_frame:
+          Value: true
+        kinect_04_ir_optical_frame:
+          Value: true
+        kinect_04_link:
+          Value: true
+        kinect_04_rgb_frame:
+          Value: true
+        kinect_04_rgb_optical_frame:
+          Value: true
+        kinect_05:
+          Value: true
+        kinect_05_ir_frame:
+          Value: true
+        kinect_05_ir_optical_frame:
+          Value: true
+        kinect_05_link:
+          Value: true
+        kinect_05_rgb_frame:
+          Value: true
+        kinect_05_rgb_optical_frame:
+          Value: true
+        kinect_06:
+          Value: true
+        kinect_06_ir_frame:
+          Value: true
+        kinect_06_ir_optical_frame:
+          Value: true
+        kinect_06_link:
+          Value: true
+        kinect_06_rgb_frame:
+          Value: true
+        kinect_06_rgb_optical_frame:
+          Value: true
         kinect_boxxx:
-          Value: true
-        kinect_boxxx_ir_frame:
-          Value: true
-        kinect_boxxx_ir_optical_frame:
           Value: true
         kinect_boxxx_link:
           Value: true
-        kinect_boxxx_rgb_frame:
-          Value: true
-        kinect_boxxx_rgb_optical_frame:
-          Value: true
         kinect_master:
-          Value: true
-        kinect_master_ir_frame:
-          Value: true
-        kinect_master_ir_optical_frame:
           Value: true
         kinect_master_link:
           Value: true
-        kinect_master_rgb_frame:
-          Value: true
-        kinect_master_rgb_optical_frame:
-          Value: true
         kinect_sager:
           Value: true
-        kinect_sager_ir_frame:
-          Value: true
-        kinect_sager_ir_optical_frame:
-          Value: true
         kinect_sager_link:
-          Value: true
-        kinect_sager_rgb_frame:
-          Value: true
-        kinect_sager_rgb_optical_frame:
           Value: true
         world:
           Value: true
@@ -137,30 +185,63 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
+          kinect_01:
+            kinect_01_link:
+              kinect_01_ir_frame:
+                kinect_01_ir_optical_frame:
+                  {}
+              kinect_01_rgb_frame:
+                kinect_01_rgb_optical_frame:
+                  {}
+          kinect_02:
+            kinect_02_link:
+              kinect_02_ir_frame:
+                kinect_02_ir_optical_frame:
+                  {}
+              kinect_02_rgb_frame:
+                kinect_02_rgb_optical_frame:
+                  {}
+          kinect_03:
+            kinect_03_link:
+              kinect_03_ir_frame:
+                kinect_03_ir_optical_frame:
+                  {}
+              kinect_03_rgb_frame:
+                kinect_03_rgb_optical_frame:
+                  {}
+          kinect_04:
+            kinect_04_link:
+              kinect_04_ir_frame:
+                kinect_04_ir_optical_frame:
+                  {}
+              kinect_04_rgb_frame:
+                kinect_04_rgb_optical_frame:
+                  {}
+          kinect_05:
+            kinect_05_link:
+              kinect_05_ir_frame:
+                kinect_05_ir_optical_frame:
+                  {}
+              kinect_05_rgb_frame:
+                kinect_05_rgb_optical_frame:
+                  {}
+          kinect_06:
+            kinect_06_link:
+              kinect_06_ir_frame:
+                kinect_06_ir_optical_frame:
+                  {}
+              kinect_06_rgb_frame:
+                kinect_06_rgb_optical_frame:
+                  {}
           kinect_boxxx:
             kinect_boxxx_link:
-              kinect_boxxx_ir_frame:
-                kinect_boxxx_ir_optical_frame:
-                  {}
-              kinect_boxxx_rgb_frame:
-                kinect_boxxx_rgb_optical_frame:
-                  {}
+              {}
           kinect_master:
             kinect_master_link:
-              kinect_master_ir_frame:
-                kinect_master_ir_optical_frame:
-                  {}
-              kinect_master_rgb_frame:
-                kinect_master_rgb_optical_frame:
-                  {}
+              {}
           kinect_sager:
             kinect_sager_link:
-              kinect_sager_ir_frame:
-                kinect_sager_ir_optical_frame:
-                  {}
-              kinect_sager_rgb_frame:
-                kinect_sager_rgb_optical_frame:
-                  {}
+              {}
       Update Interval: 0
       Value: true
     - Class: rviz/MarkerArray
@@ -177,7 +258,9 @@ Visualization Manager:
       Name: MarkerArray
       Namespaces:
         joints_raw: false
+        joints_valid: true
         links_raw: false
+        links_valid: true
         numbers: true
       Queue Size: 100
       Value: true
@@ -210,7 +293,7 @@ Visualization Manager:
       Marker Topic: /recognizer/markers
       Name: MarkerArray
       Namespaces:
-        {}
+        pose_recognition: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -342,6 +425,15 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /recognizer/markers_debug
+      Name: MarkerArray
+      Namespaces:
+        recognition_id: true
+        recognition_score: true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -366,7 +458,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 7.11493
+      Distance: 12.005
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -378,10 +470,10 @@ Visualization Manager:
         Z: 0.107659
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.60791
+      Pitch: 0.42291
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.26117
+      Yaw: 0.93615
     Saved: ~
 Window Geometry:
   Displays:

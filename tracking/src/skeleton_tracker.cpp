@@ -357,13 +357,18 @@ SkeletonTracker::createNewTrack(open_ptrack::detection::SkeletonDetection&
 }
 
 void
-SkeletonTracker::toMarkerArray(visualization_msgs::MarkerArray::Ptr &msg)
+SkeletonTracker::toMarkerArray(visualization_msgs::MarkerArray::Ptr &msg,
+                               bool remove_head_in_rviz)
 {
   for(std::list<open_ptrack::tracking::SkeletonTrack*>::iterator
       it = tracks_.begin(); it != tracks_.end(); it++)
   {
     open_ptrack::tracking::SkeletonTrack* t = *it;
-    t->createMarker(msg);
+    if(t->getVisibility() == open_ptrack::tracking::SkeletonTrack::OCCLUDED
+       or
+       t->getVisibility() == open_ptrack::tracking::SkeletonTrack::NOT_VISIBLE)
+      continue;
+    t->createMarker(msg, remove_head_in_rviz);
   }
 }
 

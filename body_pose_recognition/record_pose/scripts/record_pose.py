@@ -7,13 +7,33 @@ import os.path
 import numpy as np
 import errno
 import cv2
-from opt_msgs.msg import SkeletonTrackArray
+from opt_msgs.msg import StandardSkeletonTrackArray
 
 valid_skeletons = 0
 skeletons = []
 median = np.zeros(shape=(3, 15))
 end_node = False
 pose_name = ""
+
+def generatestickman(points):
+  stickman = np.zeros((300, 300, 1), dtype = "uint8")
+  cv2.line(stickman, (int(points[:,0][0]),int(points[:,0][1])), (int(points[:,1][0]), int(points[:,1][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,1][0]),int(points[:,1][1])), (int(points[:,2][0]), int(points[:,2][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,2][0]),int(points[:,2][1])), (int(points[:,3][0]), int(points[:,3][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,3][0]),int(points[:,3][1])), (int(points[:,4][0]), int(points[:,4][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,1][0]),int(points[:,1][1])), (int(points[:,5][0]), int(points[:,5][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,5][0]),int(points[:,5][1])), (int(points[:,6][0]), int(points[:,6][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,6][0]),int(points[:,6][1])), (int(points[:,7][0]), int(points[:,7][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,8][0]),int(points[:,8][1])), (int(points[:,9][0]), int(points[:,9][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,9][0]),int(points[:,9][1])), (int(points[:,10][0]),int(points[:,10][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,11][0]),int(points[:,11][1])), (int(points[:,12][0]), int(points[:,12][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,12][0]),int(points[:,12][1])), (int(points[:,13][0]), int(points[:,13][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,2][0]),int(points[:,2][1])), (int(points[:,8][0]), int(points[:,8][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,8][0]),int(points[:,8][1])), (int(points[:,11][0]), int(points[:,11][1])), 255, 10)
+  cv2.line(stickman, (int(points[:,11][0]),int(points[:,11][1])), (int(points[:,5][0]), int(points[:,5][1])), 255, 10)
+  # cv2.imshow("stickman",stickman)
+  stickman = cv2.flip(stickman, 1)
+  return stickman
 
 def record_frame():
     global end_node
@@ -103,28 +123,16 @@ def record_frame():
     # frame
     # stickman
     points = ((median.transpose() - old_min) / old_diff * new_diff + new_min).transpose()
+    points_old = points
     matr_rot_z = np.matrix("0 -1 0; 1 0 0; 0 0 1")
     matr_rot_x = np.matrix("0 0 1; 0 1 0; -1 0 0")
     points = (points.transpose() * matr_rot_x * np.linalg.inv(matr_rot_z) ).transpose()
     points -= (points[:,14].transpose() - (150,150,0)).transpose()
     # points = ((points - old_min) / old_diff * new_diff + new_min).transpose()
-    cv2.line(stickman, (int(points[:,0][0]),int(points[:,0][1])), (int(points[:,1][0]), int(points[:,1][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,1][0]),int(points[:,1][1])), (int(points[:,2][0]), int(points[:,2][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,2][0]),int(points[:,2][1])), (int(points[:,3][0]), int(points[:,3][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,3][0]),int(points[:,3][1])), (int(points[:,4][0]), int(points[:,4][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,1][0]),int(points[:,1][1])), (int(points[:,5][0]), int(points[:,5][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,5][0]),int(points[:,5][1])), (int(points[:,6][0]), int(points[:,6][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,6][0]),int(points[:,6][1])), (int(points[:,7][0]), int(points[:,7][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,8][0]),int(points[:,8][1])), (int(points[:,9][0]), int(points[:,9][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,9][0]),int(points[:,9][1])), (int(points[:,10][0]),int(points[:,10][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,11][0]),int(points[:,11][1])), (int(points[:,12][0]), int(points[:,12][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,12][0]),int(points[:,12][1])), (int(points[:,13][0]), int(points[:,13][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,2][0]),int(points[:,2][1])), (int(points[:,8][0]), int(points[:,8][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,8][0]),int(points[:,8][1])), (int(points[:,11][0]), int(points[:,11][1])), 255, 10)
-    cv2.line(stickman, (int(points[:,11][0]),int(points[:,11][1])), (int(points[:,5][0]), int(points[:,5][1])), 255, 10)
-    # cv2.imshow("stickman",stickman)
-    stickman = cv2.flip(stickman, 1)
-    cv2.imwrite(frame_dir + "/frame_" + str(frame_id) + ".jpg", stickman)
+    stickman = generatestickman(points)
+    cv2.imwrite(frame_dir + "/frame_" + str(frame_id) + "_front.jpg", stickman)
+    stickman = generatestickman(points_old)
+    cv2.imwrite(frame_dir + "/frame_" + str(frame_id) + "_top.jpg", stickman)
     print ("Recorded!")
     end_node = True
 
@@ -189,7 +197,7 @@ def callback(data):
     
 if __name__ == "__main__":
     rospy.init_node("pose_recorder")
-    rospy.Subscriber("skeletons", SkeletonTrackArray, callback, queue_size=10)
+    rospy.Subscriber("skeletons", StandardSkeletonTrackArray, callback, queue_size=10)
     min_valid_skeletons = rospy.get_param("~min_valid_skeletons", 100)
     print ("min_valid_skeletons: " + str(min_valid_skeletons))
     per_joint_valid_pose_threshold = rospy.get_param("~per_joint_valid_pose_threshold", 0.01)

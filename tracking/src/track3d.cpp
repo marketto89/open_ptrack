@@ -150,6 +150,8 @@ Track3D::update(
     open_ptrack::detection::DetectionSource* detection_source,
     bool first_update)
 {
+  if(isnan(x) or isnan(y) or isnan(z)) return;
+
   //Update Kalman filter
   int difference;
   double vx, vy, vz;
@@ -172,7 +174,10 @@ Track3D::update(
     int vIndex = (MAX_SIZE + last_time_predicted_index_ + difference) % MAX_SIZE;
 //    std::cout << vIndex << std::endl;
 
-    if(difference != 0)
+    if(difference != 0
+       and not mahalanobis_map6d_[vIndex].x == 0
+       and not mahalanobis_map6d_[vIndex].y == 0
+       and not mahalanobis_map6d_[vIndex].z == 0) // prevent initial drift
     {
       vx = - (x - mahalanobis_map6d_[vIndex].x) / dt;
       vy = - (y - mahalanobis_map6d_[vIndex].y) / dt;
@@ -186,7 +191,6 @@ Track3D::update(
     }
 //    std::cout << "Mahalanobis: " << mahalanobis_map6d_[vIndex].x << "," << mahalanobis_map6d_[vIndex].y << "," << mahalanobis_map6d_[vIndex].z << std::endl;
   }
-
   // Update Kalman filter from the last time the track was visible:
   int framesLost = int(round((detection_source->getTime() - last_time_detected_).toSec() / period_)) - 1;
 
@@ -199,13 +203,15 @@ Track3D::update(
   filter_->predict();
   if (velocity_in_motion_term_)
   {
-    isnan(x) or isnan(y) or isnan(z)?
-          filter_->update(): filter_->update(x, y, z, vx, vy, vz, distance);
+//    isnan(x) or isnan(y) or isnan(z)?
+//          filter_->update():
+          filter_->update(x, y, z, vx, vy, vz, distance);
   }
   else
   {
-    isnan(x) or isnan(y) or isnan(z)?
-          filter_->update():filter_->update(x, y, z, distance);
+//    isnan(x) or isnan(y) or isnan(z)?
+//          filter_->update():
+          filter_->update(x, y, z, distance);
   }
 
   *tmp_filter_ = *filter_;
