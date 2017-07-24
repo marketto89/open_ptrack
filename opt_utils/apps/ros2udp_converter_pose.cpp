@@ -45,6 +45,7 @@
 #include <body_pose_estimation/skeleton_base.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 #include <open_ptrack/opt_utils/udp_messaging.h>
 #include <open_ptrack/opt_utils/json.h>
 
@@ -227,17 +228,29 @@ main(int argc, char **argv)
   nh.param("json/heartbeat_interval", heartbeat_interval, 0.25);
 
   // ROS subscriber:
+  
   message_filters::Subscriber<opt_msgs::SkeletonTrackArray>
-      skel_track_array_sub(nh, "/tracker/skeleton_tracks", 1);
+      skel_track_array_sub(nh, "/tracker/skeleton_tracks", 5);
   message_filters::Subscriber<opt_msgs::StandardSkeletonTrackArray>
-      standard_skel_track_array_sub(nh, "/tracker/standard_skeleton_tracks", 1);
+      standard_skel_track_array_sub(nh, "/tracker/standard_skeleton_tracks", 5);
   message_filters::Subscriber<opt_msgs::PoseRecognitionArray>
-      pose_recognition_array_sub(nh, "/recognizer/poses", 1);
-  message_filters::TimeSynchronizer<opt_msgs::SkeletonTrackArray,
-      opt_msgs::StandardSkeletonTrackArray, opt_msgs::PoseRecognitionArray>
-      sync(skel_track_array_sub, standard_skel_track_array_sub,
-           pose_recognition_array_sub, 1);
-  sync.registerCallback(boost::bind(&synchronizedCallback, _1, _2, _3));
+      pose_recognition_array_sub(nh, "/recognizer/poses", 5);
+  // message_filters::TimeSynchronizer<opt_msgs::SkeletonTrackArray,
+  //     opt_msgs::StandardSkeletonTrackArray, opt_msgs::PoseRecognitionArray>
+  //     sync(skel_track_array_sub, standard_skel_track_array_sub,
+  //          pose_recognition_array_sub, 5);
+  // sync.registerCallback(boost::bind(&synchronizedCallback, _1, _2, _3));
+  typedef message_filters::sync_policies::ApproximateTime
+      <opt_msgs::SkeletonTrackArray,
+      opt_msgs::StandardSkeletonTrackArray,
+      opt_msgs::PoseRecognitionArray> MySyncPolicy;
+  message_filters::Synchronizer<MySyncPolicy> sync_(MySyncPolicy(10),
+                                                    skel_track_array_sub,
+                                                    standard_skel_track_array_sub,
+                                                    pose_recognition_array_sub);
+  sync_.registerCallback(boost::bind(&synchronizedCallback, _1, _2, _3));
+
+
 
 
   // Initialize UDP parameters:
