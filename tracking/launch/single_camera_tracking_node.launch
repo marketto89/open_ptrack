@@ -22,7 +22,9 @@
 
   <group if="$(arg enable_pose)">
   <!-- Skeleton tracking -->
-  <include file="$(find detection)/launch/skeleton_detector.launch"/>
+  <include file="$(find detection)/launch/skeleton_detector.launch">
+     <arg name="sensor_name" value="$(arg sensor_name)" />
+  </include>
   <include file="$(find tracking)/launch/skeleton_tracker_single.launch">
      <arg name="input_topic" value="/detector/skeletons" />
   </include>
@@ -35,6 +37,7 @@
   <node pkg="opt_gui" type="opt_gui" name="opt_gui" output="screen"/>
   <node pkg="detection" type="multiple_objects_detection_node" name="multiple_objects_detection" output="screen" required="true">
      <rosparam command="load" file="$(find detection)/conf/multiple_objects_detection.yaml" />
+     <param name="set_object_names" value="true" />
   </node>
   </group>
 

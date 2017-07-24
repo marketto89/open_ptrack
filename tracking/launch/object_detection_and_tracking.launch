@@ -2,7 +2,7 @@
 <launch>
  
  <!-- People and object tracking -->
-  <include file="$(find tracking)/launch/tracker_single_camera.launch"/>
+  <include file="$(find tracking)/launch/tracker_single.launch"/>
 
   <!-- opt_gui -->
   <node pkg="opt_gui" type="opt_gui" name="opt_gui" output="screen">
