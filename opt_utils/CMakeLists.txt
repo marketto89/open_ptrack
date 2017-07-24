@@ -39,6 +39,12 @@ target_link_libraries(roi_viewer boost_system boost_filesystem boost_signals ${P
 add_executable(ros2udp_converter apps/ros2udp_converter.cpp src/udp_messaging.cpp)# src/json.cpp)
 target_link_libraries(ros2udp_converter ${catkin_LIBRARIES} json)
 
+add_executable(ros2udp_converter_pose apps/ros2udp_converter_pose.cpp src/udp_messaging.cpp)# src/json.cpp)
+target_link_libraries(ros2udp_converter_pose ${catkin_LIBRARIES} json)
+
+add_executable(ros2udp_converter_objects apps/ros2udp_converter_objects.cpp src/udp_messaging.cpp)
+target_link_libraries(ros2udp_converter_objects ${catkin_LIBRARIES} json)
+
 add_executable(udp_listener apps/udp_listener.cpp src/udp_messaging.cpp)
 target_link_libraries(udp_listener ${catkin_LIBRARIES})
 

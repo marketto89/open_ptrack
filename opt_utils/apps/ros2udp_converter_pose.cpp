@@ -64,40 +64,102 @@ double heartbeat_interval;
 using namespace open_ptrack::bpe;
 
 void
-trackingCallback(const opt_msgs::TrackArray::ConstPtr& tracking_msg)
+synchronizedCallback(
+    const opt_msgs::SkeletonTrackArrayConstPtr& skel_track_msg,
+    const opt_msgs::StandardSkeletonTrackArrayConstPtr& st_skel_msg,
+    const opt_msgs::PoseRecognitionArrayConstPtr& pr_array_msg)
 {
-  /// Create JSON-formatted message:
-  Jzon::Object root, header, stamp;
+  // ROS_INFO_STREAM("Synchronized!");
 
-  /// Add header (84 characters):
-  header.Add("seq", int(tracking_msg->header.seq));
-  stamp.Add("sec", int(tracking_msg->header.stamp.sec));
-  stamp.Add("nsec", int(tracking_msg->header.stamp.nsec));
-  header.Add("stamp", stamp);
-  std::string camera_name = tracking_msg->header.frame_id;
+//  /// Create JSON-formatted message:
+  Jzon::Object root, header, stamp;
+  Jzon::Array tracks;
+
+//  /// Add header (84 characters):
+  header.Add("seq", int(pr_array_msg->header.seq));
+  stamp.Add("sec", int(pr_array_msg->header.stamp.sec));
+  stamp.Add("nsec", int(pr_array_msg->header.stamp.nsec));
+  header.Add("stamp", stamp); 
+
+  std::string camera_name = skel_track_msg->header.frame_id;
     if (strcmp(camera_name.substr(0,1).c_str(), "/") == 0)  // Remove bar at the beginning
     {
       camera_name = camera_name.substr(1, camera_name.size() - 1);
     }
+  
   header.Add("frame_id", camera_name);
   root.Add("header", header);
 
-  /// Add tracks array:
-  // >50 characters for every track
-  Jzon::Array tracks;
-  for (unsigned int i = 0; i < tracking_msg->tracks.size(); i++)
+  // persons
+  for (unsigned int i = 0; i < skel_track_msg->tracks.size(); i++)
   {
     Jzon::Object current_track;
-    current_track.Add("id", tracking_msg->tracks[i].id);
-    current_track.Add("x", tracking_msg->tracks[i].x);
-    current_track.Add("y", tracking_msg->tracks[i].y);
-    current_track.Add("height", tracking_msg->tracks[i].height);
-    current_track.Add("age", tracking_msg->tracks[i].age);
-    current_track.Add("confidence", tracking_msg->tracks[i].confidence);
+    const opt_msgs::SkeletonTrack& t = skel_track_msg->tracks[i];
+    const opt_msgs::StandardSkeletonTrack& st_t = st_skel_msg->tracks[i];
+    const opt_msgs::PoseRecognition& pr = pr_array_msg->poses[i];
+    current_track.Add("id", t.id);
+    current_track.Add("height", t.height);
+    if(std::isnan(st_t.orientation))
+       current_track.Add("orientation", std::string("nan"));
+    else
+       current_track.Add("orientation", st_t.orientation);
+    current_track.Add("age", t.age);
+    current_track.Add("predicted_pose_name",
+                      pr.best_prediction_result.pose_name);
+    current_track.Add("predicted_pose_id",
+                      pr.best_prediction_result.pose_id);
+    current_track.Add("prediction_score",
+                      pr.best_prediction_result.score);
+    // poses
+    Jzon::Array poses;
+    for (size_t p_id = 0, p_end = pr.gallery_poses.size(); p_id != p_end;
+         ++p_id)
+    {
+      Jzon::Object pose;
+      const opt_msgs::PosePredictionResult& ppr = pr.gallery_poses[p_id];
+      pose.Add("pose_name", ppr.pose_name);
+      pose.Add("pose_id", ppr.pose_id);
+      if(std::isnan(ppr.score))
+       pose.Add("prediction_score", std::string("nan"));
+      else
+       pose.Add("prediction_score", ppr.score);
+      poses.Add(pose);
+    }
+    current_track.Add("pose_tracks", poses);
+
+    // joints
+    Jzon::Object joints;
+    for (size_t j_id = 0, j_end = t.joints.size(); j_id != j_end;
+         ++j_id)
+    {
+      const opt_msgs::Track3D& j = t.joints[j_id];
+      const std::string& s = SkeletonBase::JOINT_NAMES[j_id];
+      Jzon::Object jj;
+      if(std::isnan(j.x))
+       jj.Add("x", std::string("nan"));
+      else
+       jj.Add("x", j.x);
+      if(std::isnan(j.y))
+       jj.Add("y", std::string("nan"));
+      else
+       jj.Add("y", j.y);
+      if(std::isnan(j.z))
+       jj.Add("z", std::string("nan"));
+      else
+       jj.Add("z", j.z);
+
+      if(std::isnan(j.confidence))
+       jj.Add("confidence", std::string("nan"));
+      else
+       jj.Add("confidence", j.confidence);
+
+      joints.Add(s, jj);
+    }
+    current_track.Add("joints", joints);
 
     tracks.Add(current_track);
   }
-  root.Add("people_tracks", tracks);
+  root.Add("pose_tracks", tracks);
 
   /// Convert JSON object to string:
   Jzon::Format message_format = Jzon::StandardFormat;
@@ -124,58 +186,6 @@ trackingCallback(const opt_msgs::TrackArray::ConstPtr& tracking_msg)
   udp_messaging.sendFromSocketUDP(&udp_data);
 }
 
-void
-aliveIDsCallback(const opt_msgs::IDArray::ConstPtr& alive_ids_msg)
-{
-  ros::Time msg_time = ros::Time(alive_ids_msg->header.stamp.sec, alive_ids_msg->header.stamp.nsec);
-  if ((msg_time - last_heartbeat_time).toSec() > heartbeat_interval)
-  {
-    /// Create JSON-formatted message:
-    Jzon::Object root, header, stamp;
-
-    /// Add header:
-    header.Add("seq", int(alive_ids_msg->header.seq));
-    stamp.Add("sec", int(alive_ids_msg->header.stamp.sec));
-    stamp.Add("nsec", int(alive_ids_msg->header.stamp.nsec));
-    header.Add("stamp", stamp);
-    header.Add("frame_id", "heartbeat");
-    root.Add("header", header);
-
-    Jzon::Array alive_IDs;
-    for (unsigned int i = 0; i < alive_ids_msg->ids.size(); i++)
-    {
-      alive_IDs.Add(alive_ids_msg->ids[i]);
-    }
-    root.Add("alive_IDs", alive_IDs);
-    root.Add("max_ID", alive_ids_msg->max_ID);
-
-    /// Convert JSON object to string:
-    Jzon::Format message_format = Jzon::StandardFormat;
-    message_format.indentSize = json_indent_size;
-    message_format.newline = json_newline;
-    message_format.spacing = json_spacing;
-    message_format.useTabs = json_use_tabs;
-    Jzon::Writer writer(root, message_format);
-    writer.Write();
-    std::string json_string = writer.GetResult();
-    //  std::cout << "String sent: " << json_string << std::endl;
-
-    /// Copy string to message buffer:
-    udp_data.si_num_byte_ = json_string.length()+1;
-    char buf[udp_data.si_num_byte_];
-    for (unsigned int i = 0; i < udp_data.si_num_byte_; i++)
-    {
-      buf[i] = 0;
-    }
-    sprintf(buf, "%s", json_string.c_str());
-    udp_data.pc_pck_ = buf;         // buffer where the message is written
-
-    /// Send message:
-    udp_messaging.sendFromSocketUDP(&udp_data);
-
-    last_heartbeat_time = msg_time;
-  }
-}
 
 typedef unsigned long uint32;
 // convert a string represenation of an IP address into its numeric equivalent
@@ -217,10 +227,17 @@ main(int argc, char **argv)
   nh.param("json/heartbeat_interval", heartbeat_interval, 0.25);
 
   // ROS subscriber:
-  ros::Subscriber tracking_sub = nh.subscribe<opt_msgs::TrackArray>
-      ("input_topic", 1, trackingCallback);
-  ros::Subscriber alive_ids_sub = nh.subscribe<opt_msgs::IDArray>
-      ("alive_ids_topic", 1, aliveIDsCallback);
+  message_filters::Subscriber<opt_msgs::SkeletonTrackArray>
+      skel_track_array_sub(nh, "/tracker/skeleton_tracks", 1);
+  message_filters::Subscriber<opt_msgs::StandardSkeletonTrackArray>
+      standard_skel_track_array_sub(nh, "/tracker/standard_skeleton_tracks", 1);
+  message_filters::Subscriber<opt_msgs::PoseRecognitionArray>
+      pose_recognition_array_sub(nh, "/recognizer/poses", 1);
+  message_filters::TimeSynchronizer<opt_msgs::SkeletonTrackArray,
+      opt_msgs::StandardSkeletonTrackArray, opt_msgs::PoseRecognitionArray>
+      sync(skel_track_array_sub, standard_skel_track_array_sub,
+           pose_recognition_array_sub, 1);
+  sync.registerCallback(boost::bind(&synchronizedCallback, _1, _2, _3));
 
 
   // Initialize UDP parameters:
