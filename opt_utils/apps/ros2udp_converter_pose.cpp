@@ -79,8 +79,15 @@ synchronizedCallback(
   header.Add("seq", int(pr_array_msg->header.seq));
   stamp.Add("sec", int(pr_array_msg->header.stamp.sec));
   stamp.Add("nsec", int(pr_array_msg->header.stamp.nsec));
-  header.Add("stamp", stamp);
-  header.Add("frame_id", skel_track_msg->header.frame_id);
+  header.Add("stamp", stamp); 
+
+  std::string camera_name = skel_track_msg->header.frame_id;
+    if (strcmp(camera_name.substr(0,1).c_str(), "/") == 0)  // Remove bar at the beginning
+    {
+      camera_name = camera_name.substr(1, camera_name.size() - 1);
+    }
+  
+  header.Add("frame_id", camera_name);
   root.Add("header", header);
 
   // persons
@@ -92,7 +99,10 @@ synchronizedCallback(
     const opt_msgs::PoseRecognition& pr = pr_array_msg->poses[i];
     current_track.Add("id", t.id);
     current_track.Add("height", t.height);
-    current_track.Add("orientation", st_t.orientation);
+    if(std::isnan(st_t.orientation))
+       current_track.Add("orientation", std::string("nan"));
+    else
+       current_track.Add("orientation", st_t.orientation);
     current_track.Add("age", t.age);
     current_track.Add("predicted_pose_name",
                       pr.best_prediction_result.pose_name);
@@ -109,10 +119,13 @@ synchronizedCallback(
       const opt_msgs::PosePredictionResult& ppr = pr.gallery_poses[p_id];
       pose.Add("pose_name", ppr.pose_name);
       pose.Add("pose_id", ppr.pose_id);
-      pose.Add("prediction_score", ppr.score);
+      if(std::isnan(ppr.score))
+       pose.Add("prediction_score", std::string("nan"));
+      else
+       pose.Add("prediction_score", ppr.score);
       poses.Add(pose);
     }
-    current_track.Add("poses", poses);
+    current_track.Add("pose_tracks", poses);
 
     // joints
     Jzon::Object joints;
@@ -122,10 +135,24 @@ synchronizedCallback(
       const opt_msgs::Track3D& j = t.joints[j_id];
       const std::string& s = SkeletonBase::JOINT_NAMES[j_id];
       Jzon::Object jj;
-      jj.Add("x", j.x);
-      jj.Add("y", j.y);
-      jj.Add("z", j.z);
-      jj.Add("confidence", j.confidence);
+      if(std::isnan(j.x))
+       jj.Add("x", std::string("nan"));
+      else
+       jj.Add("x", j.x);
+      if(std::isnan(j.y))
+       jj.Add("y", std::string("nan"));
+      else
+       jj.Add("y", j.y);
+      if(std::isnan(j.z))
+       jj.Add("z", std::string("nan"));
+      else
+       jj.Add("z", j.z);
+
+      if(std::isnan(j.confidence))
+       jj.Add("confidence", std::string("nan"));
+      else
+       jj.Add("confidence", j.confidence);
+
       joints.Add(s, jj);
     }
     current_track.Add("joints", joints);
