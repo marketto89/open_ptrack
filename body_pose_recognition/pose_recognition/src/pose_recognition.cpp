@@ -75,10 +75,10 @@ PoseRecognition::skeletonCallback
     const opt_msgs::StandardSkeletonTrack& observed_st_sk =
         standard_data->tracks[skel_id];
     const opt_msgs::SkeletonTrack& sk2 = data->tracks[skel_id];
-    if(sk2.visibility == opt_msgs::StandardSkeletonTrack::OCCLUDED
-       or
-       sk2.visibility == opt_msgs::StandardSkeletonTrack::NOT_VISIBLE)
-      return;
+//    if(sk2.visibility == opt_msgs::StandardSkeletonTrack::OCCLUDED
+//       or
+//       sk2.visibility == opt_msgs::StandardSkeletonTrack::NOT_VISIBLE)
+//      return;
 
     // sk already in standard pose
     Eigen::Matrix<double, 6, 1> r_arm;
@@ -251,16 +251,16 @@ PoseRecognition::skeletonCallback
     // visualization marker output
     ros::Time time = ros::Time::now();
 
-    if(sk2.visibility == opt_msgs::StandardSkeletonTrack::OCCLUDED
-       or
-       sk2.visibility == opt_msgs::StandardSkeletonTrack::NOT_VISIBLE)
-      continue;
-    if(Eigen::Vector3d(sk2.joints[SkeletonJoints::CHEST].x,
-                       sk2.joints[SkeletonJoints::CHEST].y,
-                       sk2.joints[SkeletonJoints::CHEST].z).norm() < 0.01f)
-    {
-      continue;
-    }
+//    if(sk2.visibility == opt_msgs::StandardSkeletonTrack::OCCLUDED
+//       or
+//       sk2.visibility == opt_msgs::StandardSkeletonTrack::NOT_VISIBLE)
+//      continue;
+//    if(Eigen::Vector3d(sk2.joints[SkeletonJoints::CHEST].x,
+//                       sk2.joints[SkeletonJoints::CHEST].y,
+//                       sk2.joints[SkeletonJoints::CHEST].z).norm() < 0.01f)
+//    {
+//      continue;
+//    }
     visualization_msgs::Marker text_pose_name;
     text_pose_name.header.frame_id = "world";
     text_pose_name.header.stamp = time;
