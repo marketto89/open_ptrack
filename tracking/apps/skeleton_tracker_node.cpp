@@ -538,6 +538,7 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
     // Read transforms between camera frame and world frame:
     if (!extrinsic_calibration)
     {
+      ROS_INFO_STREAM("Check");
       static tf::TransformBroadcaster world_to_camera_tf_publisher;
       world_to_camera_tf_publisher.sendTransform
           (tf::StampedTransform(world_to_camera_frame_transform,
@@ -602,6 +603,7 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
     // Detection correction by means of calibration refinement:
     if (calibration_refinement)
     {
+      ROS_INFO_STREAM("Ref correction");
       if (strcmp(frame_id.substr(0,1).c_str(), "/") == 0)
       {
         frame_id = frame_id.substr(1, frame_id.size() - 1);
@@ -616,7 +618,7 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
       }
       else
       { // camera not present
-        std::cout << "Reading refinement matrix of "
+        std::cout << "SKeletonTracker: Reading refinement matrix of "
                   << frame_id << " from file." << std::endl;
         std::string refinement_filename =
             ros::package::getPath("opt_calibration") +
