@@ -250,7 +250,9 @@ detection_cb(const opt_msgs::DetectionArray::ConstPtr& msg)
     {
       static tf::TransformBroadcaster world_to_camera_tf_publisher;
 //      world_to_camera_tf_publisher.sendTransform(tf::StampedTransform(camera_frame_to_world_transform, ros::Time::now(), world_frame_id, frame_id));
-      world_to_camera_tf_publisher.sendTransform(tf::StampedTransform(world_to_camera_frame_transform, ros::Time::now(), frame_id, world_frame_id));
+      world_to_camera_tf_publisher.sendTransform
+          (tf::StampedTransform(world_to_camera_frame_transform, ros::Time::now(),
+                                frame_id_tmp + "_ir_optical_frame", world_frame_id));
     }
 
     //Calculate direct and inverse transforms between camera and world frame:

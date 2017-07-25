@@ -512,6 +512,9 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
   int pos = frame_id_tmp.find("_rgb_optical_frame");
   if (pos != std::string::npos)
     frame_id_tmp.replace(pos, std::string("_rgb_optical_frame").size(), "");
+  pos = frame_id_tmp.find("_ir_optical_frame");
+  if (pos != std::string::npos)
+    frame_id_tmp.replace(pos, std::string("_ir_optical_frame").size(), "");
   pos = frame_id_tmp.find("_depth_optical_frame");
   if (pos != std::string::npos)
     frame_id_tmp.replace(pos, std::string("_depth_optical_frame").size(), "");
