@@ -1,37 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  
-  <arg name="people_input_topic" value="/detector/detections" />
   <arg name="object_input_topic" value="/objects_detector/detections" />
-
-
-  <!-- Launch the people tracking node -->
-  <node pkg="tracking" type="tracker" name="people_tracker_node" output="screen">
-    <remap from="~input" to="$(arg people_input_topic)" />
-    <remap from="/tracker/markers" to="/tracker/people_markers" />
-    <remap from="/tracker/markers_array" to="/tracker/people_markers_array" />
-    <remap from="/tracker/history" to="/tracker/people_history" />
-    <remap from="/tracker/tracks" to="/tracker/people_tracks" />
-    <remap from="/detector/markers_array" to="/detector/people_markers_array" />
-    <remap from="/detector/history" to="/detector/people_history" />
-
-    <rosparam command="load" file="$(find tracking)/conf/tracker.yaml" /> 
-    <rosparam command="load" file="$(find detection)/conf/haar_disp_ada_detector.yaml" />
-
-  </node>
   
-  <!-- Re-publishing at fixed rate / smoothing node -->
-  <node pkg="tracking" type="moving_average_filter" name="moving_average_filter_node" output="screen">
-    <remap from="~input"         to="/tracker/people_tracks" />
-    <remap from="~output"        to="/tracker/tracks_smoothed" />
-    <remap from="~markers_array" to="/tracker/people_markers_array_smoothed" />
-    <remap from="~history"       to="/tracker/people_history_smoothed" />
-    
-    <rosparam command="load" file="$(find tracking)/conf/moving_average_filter.yaml" /> 
-  </node>
-
-
-
     
  <!-- Launch the object tracking node -->
   <node pkg="tracking" type="tracker_object" name="object_tracker_node" output="screen">
@@ -57,6 +27,7 @@
     <remap from="~history"       to="/tracker/object_history_smoothed" />
     
     <rosparam command="load" file="$(find tracking)/conf/moving_average_filter.yaml" /> 
+    <param name="set_object_names" value="true" />
   </node>
 
 
