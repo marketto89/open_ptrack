@@ -619,10 +619,10 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
       else
       { // camera not present
         std::cout << "SKeletonTracker: Reading refinement matrix of "
-                  << frame_id << " from file." << std::endl;
+                  << frame_id_tmp + "_ir_optical_frame" << " from file." << std::endl;
         std::string refinement_filename =
             ros::package::getPath("opt_calibration") +
-            "/conf/registration_" + frame_id + ".txt";
+            "/conf/registration_" + frame_id_tmp + "_ir_optical_frame.txt";
         std::ifstream f(refinement_filename.c_str());
         if (f.good()) // if the file exists
         {
