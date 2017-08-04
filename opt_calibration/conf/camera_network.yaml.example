@@ -26,7 +26,9 @@
 #        id: "blackfly_stereo"
 #        serial_left: "13310958"
 #        serial_right: "13310959"
-
+enable_people_tracking: false
+enable_object: false
+enable_pose: true
 network:
   - pc: "Cassiopea"
     sensors:
