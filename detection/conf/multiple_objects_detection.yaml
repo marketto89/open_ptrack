@@ -9,7 +9,7 @@ show_2D_track: false #true
 
 
 ###########For choose on which camera to set the object names###########
-set_object_names: false
+set_object_names: true
 ###########For choose on which camera to set the object names###########
 
 
