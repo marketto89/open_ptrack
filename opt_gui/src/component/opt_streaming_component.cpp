@@ -157,9 +157,26 @@ void OPT_Streaming_Component::save_ROI(QString sensor_name,int no_ROI, int rect_
   cv::Rect roi_rec=cv::Rect(rect_X,rect_Y,rect_width,rect_height) & cv::Rect(0,0,conversion_mat_.size().width,conversion_mat_.size().height);
   cv::Mat roi(conversion_mat_,roi_rec);
   cv::cvtColor(roi, roi, CV_BGR2RGB);
-  std::string roi_file_name=ros::package::getPath("opt_gui")+"/data/"+sensor_name.toStdString()+"_roi_"+ QString::number(no_ROI).toStdString()+".png";
+//  std::string roi_file_name=ros::package::getPath("opt_gui")+"/data/"+sensor_name.toStdString()+"_roi_"+ QString::number(no_ROI).toStdString()+".png";
+  std::string roi_file_name=ros::package::getPath("opt_gui")+"/data/"+"{"+sensor_name.toStdString()+"}-"
+                                                                     +"{default_name}-"
+                                                                     +QString::number(no_ROI).toStdString()+".png";
   cv::imwrite(roi_file_name,roi);
 }
+
+
+void OPT_Streaming_Component::rename_ROI_files(int no_ROI, QString roi_name )
+{
+  std::string sensor_name=topic_value.toStdString().substr(1, (topic_value.toStdString().size()-18));
+  std::string old_roi_file_name=ros::package::getPath("opt_gui")+"/data/"+"{"+sensor_name+"}-"
+                                                                     +"{default_name}-"
+                                                                     +QString::number(no_ROI).toStdString()+".png";
+  std::string new_roi_file_name=ros::package::getPath("opt_gui")+"/data/"+"{"+sensor_name+"}-"
+                                                                     +"{"+roi_name.toStdString()+"}-"
+                                                                     +QString::number(no_ROI).toStdString()+".png";
+  rename(old_roi_file_name.c_str(),new_roi_file_name.c_str());
+}
+
 
 // Add rois one by one to the msg in the qml after push the button named "publish_rois_from_gui"
 void OPT_Streaming_Component::add_roi(int no_ROI,QString roi_name, int rect_X,int rect_Y, int rect_width, int rect_height)
@@ -220,13 +237,17 @@ void OPT_Streaming_Component::publish_rois_from_file()
   for(std::vector<std::string>::iterator it =roi_filenames.begin(); it!=roi_filenames.end();it++)
   {
     cv::Mat image = cv::imread(rois_dir_path+*it);
-
-
     sensor_msgs::ImagePtr image_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
-
     opt_msgs::Image2D_roi_file current_image2D_roi_file_msg;
     current_image2D_roi_file_msg.image_roi=*image_msg;
-    current_image2D_roi_file_msg.name=*it;
+
+
+    std::string tmp_str=*it;
+    std::size_t p2 = tmp_str.find_last_of("{");
+    std::size_t q2 = tmp_str.find_last_of("}");
+    std::string object_name_from_file=tmp_str.substr(p2+1,q2-p2-1);
+
+    current_image2D_roi_file_msg.name=object_name_from_file;
 
     image2D_rois_from_file_pub.publish(current_image2D_roi_file_msg);
     std::cout<<"image msg for file has published"<<std::endl;

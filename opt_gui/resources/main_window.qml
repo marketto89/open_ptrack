@@ -114,7 +114,9 @@ Window {
                         var topic_name_list = main_topic.text.split('/');
                         var sensor_name=topic_name_list[1];
                         var roi_name=sensor_name+"_roi_"+no_roi.toString();
-                        var roiSourceUrl=main_videoStream.all_rois_dir_path+sensor_name+"_roi_"+no_roi.toString()+".png"
+//                        var roiSourceUrl=main_videoStream.all_rois_dir_path+sensor_name+"_roi_"+no_roi.toString()+".png"
+                        var roiSourceUrl=main_videoStream.all_rois_dir_path+"{"+sensor_name+"}-"+"{default_name}-"+no_roi.toString()+".png"
+
                         main_videoStream.save_ROI(sensor_name,no_roi,rect_X,rect_Y,rect_width,rect_height);//save the roi as image
                         roiModel.append({"roiNo": no_roi ,"sensorName":sensor_name, "roiName": roi_name,"rectX":rect_X,"rectY":rect_Y,"rectWidth":rect_width,"rectHeight":rect_height,"roiSource": roiSourceUrl ,"showConfirmbutton":true, "published":false});
                         roi_visual_Model.append({"roiNo": no_roi ,"sensorName":sensor_name, "roiName": roi_name,"rectX":rect_X,"rectY":rect_Y,"rectWidth":rect_width,"rectHeight":rect_height,"roiSource": roiSourceUrl ,"showConfirmbutton":true, "published":false});
@@ -272,7 +274,7 @@ Window {
                                 height: 20
                                 width: show_rois.width/3
                                 color: "lime"
-                                text:fileName.substring(0,fileName.indexOf('.'))
+                                text:fileName.substring(fileName.lastIndexOf('{')+1,fileName.lastIndexOf('}'))
                                 font.pixelSize: 16
                             }
                         }

@@ -55,6 +55,8 @@ public:
 
   Q_INVOKABLE void save_ROI(QString sensor_name,int no_ROI, int rect_X,int rect_Y, int rect_width, int rect_height );//save the selected rois as iamges
 
+  Q_INVOKABLE void rename_ROI_files(int no_ROI, QString roi_name );
+
   Q_INVOKABLE void add_roi(int no_ROI, QString roi_name, int rect_X,int rect_Y, int rect_width, int rect_height);// add every selected roi to msg:image2D_rois_msg
 
   Q_INVOKABLE void publish_rois_from_gui();

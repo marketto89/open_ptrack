@@ -75,6 +75,15 @@ Component {
                     roiModel.setProperty(roi_no_, "roiName", roi_name.text)
                     confirm_button.visible=false
                     delete_red.visible=false
+
+                    main_videoStream.rename_ROI_files(roi_no_,roi_name.text);
+
+                    var topic_name_list = main_topic.text.split('/');
+                    var sensor_name=topic_name_list[1];
+                    var roiSourceUrl=main_videoStream.all_rois_dir_path+"{"+sensor_name+"}-{"+roi_name.text+"}-"+roi_no_+".png"
+                    roi_visual_Model.setProperty(index, "roiSource",roiSourceUrl)
+                    roiModel.setProperty(roi_no_, "roiSource", roiSourceUrl)
+
                 }
             }
         }
