@@ -101,7 +101,7 @@ synchronizedCallback(
     current_track.Add("id", t.id);
     current_track.Add("height", t.height);
     if(std::isnan(st_t.orientation))
-       current_track.Add("orientation", std::string("nan"));
+       current_track.Add("orientation", std::string("NaN"));
     else
        current_track.Add("orientation", st_t.orientation);
     current_track.Add("age", t.age);
