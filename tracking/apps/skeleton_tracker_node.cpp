@@ -538,7 +538,6 @@ detection_cb(const rtpose_wrapper::SkeletonArrayMsg::ConstPtr& msg)
     // Read transforms between camera frame and world frame:
     if (!extrinsic_calibration)
     {
-      ROS_INFO_STREAM("Check");
       static tf::TransformBroadcaster world_to_camera_tf_publisher;
       world_to_camera_tf_publisher.sendTransform
           (tf::StampedTransform(world_to_camera_frame_transform,
