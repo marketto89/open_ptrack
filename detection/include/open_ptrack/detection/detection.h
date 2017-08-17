@@ -110,8 +110,8 @@ namespace open_ptrack
          *
          * \return the detection centroid in world reference frame.
          */
-        Eigen::Vector3d&
-        getWorldCentroid();
+        Eigen::Vector3d
+        getWorldCentroid() const;
 
         /**
          * \brief Returns the detection top point in world reference frame.
@@ -176,6 +176,14 @@ namespace open_ptrack
          */
         cv::Mat&
         getImage();
+
+        /**
+         * \brief The object name
+         *
+         * \return the object name
+         */
+        std::string
+        getObjectName();
 
         /**
          * \brief Set the confidence of the people detector associated to the detection.

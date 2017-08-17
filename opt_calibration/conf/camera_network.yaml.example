@@ -4,7 +4,9 @@
 #  * Kinect 2nd version (type: kinect2)
 #  * SwissRanger 4500 (type: sr4500)
 #  * Custom stereo pair composed of PointGrey (e.g. BlackFly) cameras (type: stereo_pg)
-#
+#enable_people_tracking: true
+#enable_pose: false
+#enable_object: false
 #network:
 #  - pc: "Cassiopea"
 #    sensors:
@@ -24,7 +26,9 @@
 #        id: "blackfly_stereo"
 #        serial_left: "13310958"
 #        serial_right: "13310959"
-
+enable_people_tracking: false
+enable_object: false
+enable_pose: true
 network:
   - pc: "Cassiopea"
     sensors:

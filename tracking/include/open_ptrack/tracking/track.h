@@ -174,7 +174,7 @@ namespace open_ptrack
         virtual ~Track();
 
         /** \brief Track initialization with an old track. */
-        void
+        virtual void
         init(const Track& old_track);
 
         /**
@@ -187,7 +187,7 @@ namespace open_ptrack
          * \param[in] distance Track distance from the sensor
          * \param[in] detection_source DetectionSource which provided the last detection associated to the track
          */
-        void
+        virtual void
         init(
             double x,
             double y,
@@ -209,7 +209,7 @@ namespace open_ptrack
          * \param[in] min_confidence_detections Minimum confidence for detection
          * \param[in] detection_source DetectionSource which provided the detection
          */
-        void
+        virtual void
         update(
             double x,
             double y,
@@ -232,11 +232,11 @@ namespace open_ptrack
          *
          * \return the Mahalanobis distance.
          */
-        double
+        virtual double
         getMahalanobisDistance(double x, double y, const ros::Time& when);
 
         /* Validate a track */
-        void
+        virtual void
         validate();
 
         /**
@@ -244,7 +244,7 @@ namespace open_ptrack
          *
          * \return true if the track has been validated, false otherwise.
          */
-        bool
+        virtual bool
         isValidated();
 
         /**
@@ -252,7 +252,7 @@ namespace open_ptrack
          *
          * \return track ID
          */
-        int
+        virtual int
         getId();
 
         /**
@@ -260,7 +260,7 @@ namespace open_ptrack
          *
          * \param[in] s status
          */
-        void
+        virtual void
         setStatus(Status s);
 
         /**
@@ -268,7 +268,7 @@ namespace open_ptrack
          *
          * \return track status
          */
-        Status
+        virtual Status
         getStatus();
 
         /**
@@ -276,7 +276,7 @@ namespace open_ptrack
          *
          * \param[in] v Visibility status.
          */
-        void
+        virtual void
         setVisibility(Visibility v);
 
         /**
@@ -284,7 +284,7 @@ namespace open_ptrack
          *
          * \return track Visibility.
          */
-        Visibility
+        virtual Visibility
         getVisibility();
 
         /**
@@ -292,7 +292,7 @@ namespace open_ptrack
          *
          * \return time passed from first detection-track association.
          */
-        float
+        virtual float
         getSecFromFirstDetection(ros::Time current_time);
 
         /**
@@ -300,7 +300,7 @@ namespace open_ptrack
          *
          * \return time passed from last detection-track association.
          */
-        float
+        virtual float
         getSecFromLastDetection(ros::Time current_time);
 
         /**
@@ -308,7 +308,7 @@ namespace open_ptrack
          *
          * \return time passed from last detection-track association with a high confidence detection.
          */
-        float
+        virtual float
         getSecFromLastHighConfidenceDetection(ros::Time current_time);
 
         /**
@@ -316,7 +316,7 @@ namespace open_ptrack
          *
          * \return the number of consecutive updates with low confidence detections.
          */
-        float
+        virtual float
         getLowConfidenceConsecutiveFrames();
 
         /**
@@ -324,7 +324,7 @@ namespace open_ptrack
          *
          * \return the number of updates with enough confidence detections.
          */
-        int
+        virtual int
         getUpdatesWithEnoughConfidence();
 
         /**
@@ -332,7 +332,7 @@ namespace open_ptrack
          *
          * \param[in] vertical States if the camera is vertically oriented (true) or not (false).
          */
-        void
+        virtual void
         draw(bool vertical);
 
         /**
@@ -340,7 +340,7 @@ namespace open_ptrack
          *
          * \param[in/out] msg Array containing markers of every track.
          */
-        void
+        virtual void
         createMarker(visualization_msgs::MarkerArray::Ptr& msg);
 
         /**
@@ -350,7 +350,7 @@ namespace open_ptrack
          *
          * \return true if track is visible, false if not visible.
          */
-        bool
+        virtual bool
         getPointXYZRGB(pcl::PointXYZRGB& p);
 
         /**
@@ -359,7 +359,7 @@ namespace open_ptrack
          * \param[in/out] track_msg Track ROS message.
          * \param[in] vertical States if the camera is vertically oriented (true) or not (false).
          */
-        void
+        virtual void
         toMsg(opt_msgs::Track& track_msg, bool vertical);
 
         /**
@@ -367,7 +367,7 @@ namespace open_ptrack
          *
          * \return the DetectionSource corresponding to the last associated detection.
          */
-        open_ptrack::detection::DetectionSource*
+        virtual open_ptrack::detection::DetectionSource*
         getDetectionSource();
 
         /**
@@ -377,7 +377,7 @@ namespace open_ptrack
          * \param[in] acceleration_variance Acceleration variance (for Kalman Filter)
          * \param[in] position_variance Position variance (for Kalman Filter)
          */
-        void
+        virtual void
         setVelocityInMotionTerm (bool velocity_in_motion_term, double acceleration_variance, double position_variance);
 
         /**
@@ -385,7 +385,7 @@ namespace open_ptrack
          *
          * \param[in] acceleration_variance Acceleration variance (for Kalman Filter)
          */
-        void
+        virtual void
         setAccelerationVariance (double acceleration_variance);
 
         /**
@@ -393,8 +393,9 @@ namespace open_ptrack
          *
          * \param[in] position_variance Position variance (for Kalman Filter)
          */
-        void
+        virtual void
         setPositionVariance (double position_variance);
+
     };
 
   } /* namespace tracking */

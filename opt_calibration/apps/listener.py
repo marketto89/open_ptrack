@@ -35,6 +35,7 @@
 #
 # Author: Matteo Munaro [matteo.munaro@dei.unipd.it]
 #         Filippo Basso [filippo.basso@dei.unipd.it]
+#		  Marco Carraro [carraromarco89@gmail.com]
 #
 ######################################################################
 
@@ -56,13 +57,64 @@ class Listener :
     self.camera_poses_dir = rospy.get_param('~camera_poses_dir')
     if self.camera_poses_dir[len(self.camera_poses_dir) - 1] != '/':
       self.camera_poses_dir = self.camera_poses_dir + '/'
+
+    self.tracker_launchers_dir = rospy.get_param('~tracker_launchers_dir')
+    if self.tracker_launchers_dir[len(self.tracker_launchers_dir) - 1] != '/':
+      self.tracker_launchers_dir = self.tracker_launchers_dir + '/'
     
     self.create_sensor_launch_srv = rospy.Service('create_sensor_launch', OPTSensor, self.handle_create_sensor_launch)
     self.create_detector_launch_srv = rospy.Service('create_detector_launch', OPTSensor, self.handle_create_detector_launch)
+    self.create_tracking_launch_srv = rospy.Service('create_tracker_launch', OPTSensor, self.handle_create_tracker_launch)
     self.create_camera_poses_srv = rospy.Service('create_camera_poses', OPTTransform, self.handle_create_camera_poses)
     
-  
-  def handle_create_sensor_launch(self, request) :
+  def handle_create_tracker_launch(self, request):
+    file_name = self.tracker_launchers_dir + 'tracking_node.launch'
+    file = open(file_name, 'w')
+    file.write('<?xml version="1.0"?>\n')
+    file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
+    file.write('<launch>\n\n')
+    if request.enable_people_tracking:
+      file.write('  <arg name="enable_people_tracking" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_people_tracking" default="false" />\n')
+    if request.enable_pose:
+      file.write('  <arg name="enable_pose" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_pose" default="false" />\n')
+    if request.enable_object:
+      file.write('  <arg name="enable_object" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_object" default="false" />\n')
+    file.write('  <!-- Load calibration results -->\n')
+    file.write('  <include file="$(find opt_calibration)/launch/opt_calibration_results.launch"/>\n\n')
+    file.write('  <group if="$(arg enable_people_tracking)">\n')
+    file.write('  <!-- People tracking -->\n')
+    file.write('  <include file="$(find tracking)/launch/tracker_network.launch"/>\n')
+    file.write('  </group>\n\n')
+    file.write('  <group if="$(arg enable_pose)">\n')
+    file.write('  <!-- Skeleton tracking -->\n')
+    file.write('  <include file="$(find tracking)/launch/skeleton_tracker_network.launch" />\n')
+    file.write('  <!-- Pose recognition -->\n')
+    file.write('  <include file="$(find pose_recognition)/launch/pose_recognition.launch" />\n')
+    file.write('  </group>\n\n')
+    file.write('  <group if="$(arg enable_object)">\n')
+    file.write('  <!-- Object Tracking -->\n')
+    file.write('  <node pkg="opt_gui" type="opt_gui" name="opt_gui" output="screen">\n')
+    file.write('    <rosparam command="load" file="$(find opt_calibration)/conf/camera_network.yaml" />\n')
+    file.write('  </node>\n')
+    file.write('  <include file="$(find tracking)/launch/object_tracker_network.launch" />\n')
+    file.write('  </group>\n\n')
+    file.write('  <!-- UDP messaging -->\n')
+    file.write('  <include file="$(find opt_utils)/launch/ros2udp_converter.launch"/>\n\n')
+    file.write('  <!-- Visualization -->\n')
+    file.write('  <include file="$(find opt_utils)/launch/multicamera_visualization.launch"/>\n')
+    file.write('</launch>\n')
+    file.close();
+    rospy.loginfo(file_name + ' created!');
+    
+    return (OPTSensorResponse.STATUS_OK, file_name + ' created!')
+
+  def handle_create_sensor_launch(self, request):
     
     file_name = self.sensor_launchers_dir + 'sensor_' + request.id + '.launch'
     file = open(file_name, 'w')
@@ -148,6 +200,18 @@ class Listener :
 
       file.write('  <!-- Publish a further transform -->\n')
       file.write('  <node pkg="tf" type="static_transform_publisher" name="$(arg sensor_name)_broadcaster" args="0 0 0 1.57079 -1.57079 0 /$(arg sensor_name) /$(arg sensor_name)_link  100" />\n\n')     
+    elif request.type == OPTSensorRequest.TYPE_ZED:
+      file.write('  <arg name="sensor_name"     default="' + request.id + '" />\n')
+      if request.id_num != '':
+        file.write('  <arg name="sensor_id" default="' + request.id_num + '" />\n')
+      file.write('\n')
+      
+      file.write('  <!-- Launch sensor -->\n')
+      file.write('  <include file="$(find zed_wrapper)/launch/zed.launch">\n')
+      if request.id_num != '':
+        file.write('    <arg name="zed_id"           value="$(arg sensor_id)" />\n')
+      file.write('    <arg name="sensor_name"         value="$(arg sensor_name)" />\n')
+      file.write('  </include>\n\n') 
       
     file.write('</launch>\n')
     file.close();
@@ -156,14 +220,24 @@ class Listener :
     return (OPTSensorResponse.STATUS_OK, file_name + ' created!')
     
   def handle_create_detector_launch(self, request) :
-    
+
     file_name = self.detector_launchers_dir + 'detection_node_' + request.id + '.launch'
     file = open(file_name, 'w')
     file.write('<?xml version="1.0"?>\n')
     file.write('<!-- SESSION ID: ' + str(request.session_id) + ' -->\n')
     file.write('<launch>\n\n')
-    
-    file.write('  <!-- Sensor parameters -->\n')
+    if request.enable_people_tracking:
+      file.write('  <arg name="enable_people_tracking" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_people_tracking" default="false" />\n')
+    if request.enable_pose:
+      file.write('  <arg name="enable_pose" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_pose" default="false" />\n')
+    if request.enable_object:
+      file.write('  <arg name="enable_object" default="true" />\n')
+    else:
+      file.write('  <arg name="enable_object" default="false" />\n')
     
     if request.type == OPTSensorRequest.TYPE_SR4500:
       file.write('  <arg name="camera_id"       default="' + request.id + '" />\n')
@@ -218,8 +292,15 @@ class Listener :
       if request.serial != '':
         file.write('  <arg name="sensor_id"   default="' + request.serial + '" />\n')
       file.write('  <arg name="sensor_name" default="' + request.id + '" />\n\n')
-      
+      file.write('  <!-- Launch the sensor -->\n')
+      file.write('  <include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch">\n')
+      if request.serial != '':
+        file.write('  <arg name="sensor_id"           value="$(arg sensor_id)" />\n')
+      file.write('    <arg name="sensor_name"         value="$(arg sensor_name)" />\n')
+      file.write('    <arg name="publish_frame"       value="true" />\n')
+      file.write('  </include>\n\n')
       file.write('  <!-- Detection node -->\n')
+      file.write('  <group if="$(arg enable_people_tracking)" >\n')
       file.write('  <include file="$(find detection)/launch/detector_kinect2.launch">\n')
       if request.serial != '':
         file.write('    <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
@@ -228,7 +309,36 @@ class Listener :
         file.write('    <arg name="rgb_camera_info_url"     value="file://$(find opt_calibration)/camera_info/rgb_$(arg sensor_name).yaml" />\n')
       file.write('    <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
       file.write('    <arg name="ground_from_calibration" value="true" />\n')
-      file.write('  </include>\n\n')
+      file.write('  </include>\n')
+      file.write('  </group>\n\n')
+
+      file.write('  <!-- Skeleton Detection node -->\n')
+      file.write('  <group if="$(arg enable_pose)">\n')
+      file.write('    <include file="$(find detection)/launch/skeleton_detector.launch">\n')
+      if request.serial != '':
+        file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
+      file.write('      <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
+      file.write('      <arg name="ground_from_calibration" value="true" />\n')
+      file.write('    </include>\n\n')
+      file.write('  </group>\n\n')
+      
+    #elif request.type == OPTSensorRequest.TYPE_ZED:
+    #  if request.id_num != '':
+    #    file.write('  <arg name="sensor_id" default="' + request.id_num + '" />\n')
+    #  file.write('  <arg name="sensor_name"     default="' + request.id + '" />\n\n')
+    #  
+    #  file.write('  <!-- true  = Munaro Based OPT Detection -->\n')
+    #  file.write('  <!-- false = YOLO Based Detection (Must Have YOLO installed to use)-->\n')
+    #  file.write('  <arg name="use_HOG"         default="true" />\n\n')
+
+      file.write('  <!-- Object Detection node -->\n')
+      file.write('  <group if="$(arg enable_object)">\n')
+      file.write('    <include file="$(find detection)/launch/object_detector.launch">\n')
+      if request.serial != '':
+        file.write('      <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
+      file.write('      <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
+      file.write('    </include>\n\n')
+      file.write('  </group>\n\n')
       
     file.write('</launch>\n')
     file.close();

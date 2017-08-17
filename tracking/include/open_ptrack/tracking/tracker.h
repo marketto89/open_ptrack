@@ -128,31 +128,31 @@ namespace open_ptrack
         bool vertical_;
 
         /** \brief Create detections<->tracks distance matrix for data association */
-        void
+        virtual void
         createDistanceMatrix();
 
         /** \brief Create detections<->tracks cost matrix to be used to solve the Global Nearest Neighbor problem */
-        void
+        virtual void
         createCostMatrix();
 
         /** \brief Update tracks associated to a detection in the current frame */
-        void
+        virtual void
         updateDetectedTracks();
 
         /** \brief Fill list containing unassociated detections */
-        void
+        virtual void
         fillUnassociatedDetections();
 
         /** \brief Create new tracks with high confidence unassociated detections */
-        void
+        virtual void
         createNewTracks();
 
         /** \brief Create a new track with detection information */
-        int
+        virtual int
         createNewTrack(open_ptrack::detection::Detection& detection);
 
         /** \brief Update lost tracks */
-        void
+        virtual void
         updateLostTracks();
 
       public:
@@ -171,13 +171,13 @@ namespace open_ptrack
          * \param[in] detections Vector of current detections.
          *
          */
-        void
+        virtual void
         newFrame(const std::vector<open_ptrack::detection::Detection>& detections);
 
         /**
          * \brief Update the list of tracks according to the current set of detections.
          */
-        void
+        virtual void
         updateTracks();
 
 //        /**
@@ -192,7 +192,7 @@ namespace open_ptrack
          *
          * \param[in] msg The MarkerArray message to fill.
          */
-        void
+        virtual void
         toMarkerArray(visualization_msgs::MarkerArray::Ptr& msg);
 
         /**
@@ -200,7 +200,7 @@ namespace open_ptrack
          *
          * \param[in] msg The TrackArray message to fill.
          */
-        void
+        virtual void
         toMsg(opt_msgs::TrackArray::Ptr& msg);
 
         /**
@@ -209,7 +209,7 @@ namespace open_ptrack
          * \param[in] msg The TrackArray message to fill.
          * \param[in] source_frame_id Frame id of tracks that have to be written to msg.
          */
-        void
+        virtual void
         toMsg(opt_msgs::TrackArray::Ptr& msg, std::string& source_frame_id);
 
         /**
@@ -217,7 +217,7 @@ namespace open_ptrack
          *
          * \param[in] msg The IDArray message to fill.
          */
-        void
+        virtual void
         getAliveIDs (opt_msgs::IDArray::Ptr& msg);
 
         /**
@@ -230,7 +230,7 @@ namespace open_ptrack
          *
          * \return the new starting_index.
          */
-        size_t
+        virtual size_t
         appendToPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& pointcloud,
             size_t starting_index, size_t max_size);
 
@@ -239,7 +239,7 @@ namespace open_ptrack
          *
          * \param[in] min_confidence Minimum confidence for track initialization
          */
-        void
+        virtual void
         setMinConfidenceForTrackInitialization (double min_confidence);
 
         /**
@@ -247,7 +247,7 @@ namespace open_ptrack
          *
          * \param[in] sec_before_old Time after which a not visible track becomes old
          */
-        void
+        virtual void
         setSecBeforeOld (double sec_before_old);
 
         /**
@@ -255,7 +255,7 @@ namespace open_ptrack
          *
          * \param[in] sec_before_fake Time within which a track should be validated (otherwise it is discarded)
          */
-        void
+        virtual void
         setSecBeforeFake (double sec_before_fake);
 
         /**
@@ -263,7 +263,7 @@ namespace open_ptrack
          *
          * \param[in] sec_remain_new Time after which a visible track obtain NORMAL status
          */
-        void
+        virtual void
         setSecRemainNew (double sec_remain_new);
 
         /**
@@ -271,7 +271,7 @@ namespace open_ptrack
          *
          * \param[in] detections_to_validate Minimum number of detection<->track associations needed for validating a track
          */
-        void
+        virtual void
         setDetectionsToValidate (int detections_to_validate);
 
         /**
@@ -279,7 +279,7 @@ namespace open_ptrack
          *
          * \param[in] detector_likelihood Flag stating if people detection confidence should be used in data association (true) or not (false)
          */
-        void
+        virtual void
         setDetectorLikelihood (bool detector_likelihood);
 
         /**
@@ -288,7 +288,7 @@ namespace open_ptrack
          * \param[in] detector_weight Weight for detector likelihood
          * \param[in] motion_weight Weight for motion likelihood
          */
-        void
+        virtual void
         setLikelihoodWeights (double detector_weight, double motion_weight);
 
         /**
@@ -298,7 +298,7 @@ namespace open_ptrack
          * \param[in] acceleration_variance Acceleration variance (for Kalman Filter)
          * \param[in] position_variance Position variance (for Kalman Filter)
          */
-        void
+        virtual void
         setVelocityInMotionTerm (bool velocity_in_motion_term, double acceleration_variance, double position_variance);
 
         /**
@@ -306,7 +306,7 @@ namespace open_ptrack
          *
          * \param[in] acceleration_variance Acceleration variance (for Kalman Filter)
          */
-        void
+        virtual void
         setAccelerationVariance (double acceleration_variance);
 
         /**
@@ -314,7 +314,7 @@ namespace open_ptrack
          *
          * \param[in] position_variance Position variance (for Kalman Filter)
          */
-        void
+        virtual void
         setPositionVariance (double position_variance);
 
         /**
@@ -322,7 +322,7 @@ namespace open_ptrack
          *
          * \param[in] gate_distance Gate distance for joint likelihood in data association.
          */
-        void
+        virtual void
         setGateDistance (double gate_distance);
     };
 

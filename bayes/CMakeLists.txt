@@ -1,11 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(bayes)
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
+
 find_package(catkin REQUIRED COMPONENTS roscpp )
 
-link_libraries(/usr/lib/liblapack.so.3gf)
+link_libraries(/usr/lib/liblapack.so.3)
 
 include_directories(include include/open_ptrack/bayes include/open_ptrack/bayes/filters)
+
+include_directories( ${catkin_INCLUDE_DIRS} )
 
 catkin_package(
    INCLUDE_DIRS include include/open_ptrack/bayes include/open_ptrack/bayes/filters

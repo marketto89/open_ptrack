@@ -38,7 +38,11 @@
 
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/point_cloud2_iterator.h>
 
 #include <swissranger_camera/utility.h>
 
@@ -158,7 +162,7 @@ public:
 
   inline bool isSensorSet() const
   {
-    return sensor_;
+    return sensor_.get() != 0;
   }
 
   virtual bool allSensorsSet() const
@@ -273,12 +277,12 @@ public:
 
   inline bool isDepthSensorSet() const
   {
-    return depth_sensor_;
+    return depth_sensor_.get() != 0;
   }
 
   inline bool isColorSensorSet() const
   {
-    return color_sensor_;
+    return color_sensor_.get() != 0;
   }
 
   virtual bool allSensorsSet() const
@@ -397,12 +401,12 @@ public:
 
   inline bool isDepthSensorSet() const
   {
-    return depth_sensor_;
+    return depth_sensor_.get() != 0;
   }
 
   inline bool isIntensitySensorSet() const
   {
-    return intensity_sensor_;
+    return intensity_sensor_.get() != 0;
   }
 
   virtual bool allSensorsSet() const

@@ -3,6 +3,7 @@ uint8 TYPE_KINECT1=1
 uint8 TYPE_SR4500=2
 uint8 TYPE_STEREO_PG=3
 uint8 TYPE_KINECT2=4
+uint8 TYPE_ZED=5
 
 uint64 session_id
 
@@ -18,6 +19,13 @@ string ip
 # if TYPE_STEREO_PG
 string serial_left
 string serial_right
+
+# if TYPE_ZED
+string id_num
+
+bool enable_people_tracking
+bool enable_object
+bool enable_pose
 
 ---
 

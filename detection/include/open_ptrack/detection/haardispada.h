@@ -35,6 +35,8 @@ POSSIBILITY OF SUCH DAMAGE.
 /*****************************************************************************
  ** Includes
  *****************************************************************************/
+#include <cstdio>
+#include <iostream>
 #include <stdlib.h>
 #include <algorithm>
 #include <vector>
@@ -42,7 +44,10 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <boost/filesystem.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv/cv.h>
-#include <opencv/ml.h>
+#include <opencv2/ml/ml.hpp>
+#include "opencv2/imgproc.hpp"
+//#include "opencv2/highgui.hpp"
+
 #include <opt_msgs/Rois.h>
 #include <opt_msgs/RoiRect.h>
 
@@ -101,7 +106,8 @@ namespace open_ptrack
         void setMinConfidence(float );
 
       private:
-        CvBoost HDAC_;
+        //CvBoost HDAC_;
+        cv::Ptr<cv::ml::Boost> HDAC_ = cv::ml::Boost::create();
         string classifier_filename_; // for loading and saving
         int maxSamples_;
         int num_filters_;

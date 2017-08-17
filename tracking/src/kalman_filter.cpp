@@ -79,7 +79,8 @@ namespace open_ptrack
     }
 
     ObserveModel::ObserveModel(double position_variance, int output_dimension) :
-		    Bayesian_filter::Linear_uncorrelated_observe_model(4, output_dimension), position_variance_(position_variance)
+        Bayesian_filter::Linear_uncorrelated_observe_model(4, output_dimension),
+        position_variance_(position_variance)
     {
 
       for(size_t i = 0; i < output_dimension; i++)
@@ -127,6 +128,9 @@ namespace open_ptrack
       this->position_variance_ = orig.position_variance_;
       this->depth_multiplier_ = orig.depth_multiplier_;
       this->acceleration_variance_ = orig.acceleration_variance_;
+      delete this->predict_model_;
+      delete this->observe_model_;
+      delete this->filter_;
       this->predict_model_ = new PredictModel(dt_, acceleration_variance_);
       this->observe_model_ = new ObserveModel(position_variance_, output_dimension_);
       this->filter_ = new Bayesian_filter::Unscented_scheme(4, 2);
@@ -360,5 +364,6 @@ namespace open_ptrack
       position_variance_ = position_variance;
       observe_model_ = new ObserveModel(position_variance_, output_dimension_);
     }
+
   } /* namespace tracking */
 } /* namespace open_ptrack */

@@ -67,6 +67,8 @@
 #include <dynamic_reconfigure/server.h>
 #include <tracking/TrackerConfig.h>
 
+#include <chrono>
+
 typedef tracking::TrackerConfig Config;
 typedef dynamic_reconfigure::Server<Config> ReconfigureServer;
 
@@ -244,11 +246,9 @@ detection_cb(const opt_msgs::DetectionArray::ConstPtr& msg)
 //      world_to_camera_tf_publisher.sendTransform(tf::StampedTransform(camera_frame_to_world_transform, ros::Time::now(), world_frame_id, frame_id));
       world_to_camera_tf_publisher.sendTransform(tf::StampedTransform(world_to_camera_frame_transform, ros::Time::now(), frame_id, world_frame_id));
     }
-
     //Calculate direct and inverse transforms between camera and world frame:
     tf_listener->lookupTransform(world_frame_id, frame_id, ros::Time(0), transform);
     tf_listener->lookupTransform(frame_id, world_frame_id, ros::Time(0), inverse_transform);
-
     //		cvPtr = cv_bridge::toCvCopy(msg->image, sensor_msgs::image_encodings::BGR8);
 
     // Read camera intrinsic parameters:
@@ -338,12 +338,14 @@ detection_cb(const opt_msgs::DetectionArray::ConstPtr& msg)
         {
           Eigen::Vector3d old_centroid = detections_vector[i].getWorldCentroid();
 
-//          std::cout << frame_id << std::endl;
-//          std::cout << registration_matrix << std::endl;
-//          std::cout << "old_centroid: " << old_centroid.transpose() << std::endl;
-          Eigen::Vector4d old_centroid_homogeneous(old_centroid(0), old_centroid(1), old_centroid(2), 1.0);
-          Eigen::Vector4d refined_centroid = registration_matrix * old_centroid_homogeneous;
-          detections_vector[i].setWorldCentroid(Eigen::Vector3d(refined_centroid(0), refined_centroid(1), refined_centroid(2)));
+          Eigen::Vector4d old_centroid_homogeneous(old_centroid(0),
+                                                   old_centroid(1),
+                                                   old_centroid(2), 1.0);
+          Eigen::Vector4d refined_centroid = registration_matrix
+              * old_centroid_homogeneous;
+          detections_vector[i].setWorldCentroid(
+                Eigen::Vector3d(refined_centroid(0), refined_centroid(1),
+                                refined_centroid(2)));
 
           Eigen::Vector3d refined_centroid2 = detections_vector[i].getWorldCentroid();
 //          std::cout << "refined_centroid2: " << refined_centroid2.transpose() << std::endl;
@@ -356,8 +358,11 @@ detection_cb(const opt_msgs::DetectionArray::ConstPtr& msg)
     if((detections_vector.size() > 0) && (time_delay < max_detection_delay))
     {
       // Perform detection-track association:
+//      std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
       tracker->newFrame(detections_vector);
       tracker->updateTracks();
+//      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+//      ROS_WARN_STREAM("Track time: " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
 
       // Create a TrackingResult message with the output of the tracking process
       if(output_tracking_results)
@@ -490,13 +495,9 @@ detection_cb(const opt_msgs::DetectionArray::ConstPtr& msg)
       }
     }
   }
-//  catch(cv_bridge::Exception& ex)
-//  {
-//    ROS_ERROR("cv_bridge exception: %s", ex.what());
-//  }
   catch(tf::TransformException& ex)
   {
-    ROS_ERROR("transform exception: %s", ex.what());
+    ROS_ERROR("transform exception: %s If you are seeing just one error like this do not worry, I am probably working!", ex.what());
   }
 }
 

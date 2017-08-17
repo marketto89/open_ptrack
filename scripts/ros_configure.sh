@@ -9,7 +9,6 @@ fi
 
 mkdir -p ~/workspace/ros/catkin/src
 cd ~/workspace/ros/catkin
-catkin_make --pkg opt_msgs
 catkin_make --force-cmake
 mkdir -p ~/workspace/ros/rosbuild
 rosws init ~/workspace/ros/rosbuild ~/workspace/ros/catkin/devel

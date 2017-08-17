@@ -35,6 +35,7 @@
 #
 # Author: Matteo Munaro [matteo.munaro@dei.unipd.it]
 #         Filippo Basso [filippo.basso@dei.unipd.it]
+#         Marco Carraro [carraromarco89@gmail.com]
 #
 ######################################################################
 
@@ -51,7 +52,9 @@ class CalibrationInitializer :
     self.checkerboard = rospy.get_param('~checkerboard')
     self.file_name = rospy.get_param('~network_calibration_launch_file')
     self.frame_file_name = rospy.get_param('~frame_calibration_launch_file')
-    
+    self.enable_pose = rospy.get_param("~enable_pose")
+    self.enable_object = rospy.get_param("~enable_object")
+    self.enable_people_tracking = rospy.get_param("~enable_people_tracking")
     self.sensor_list = []
     self.sensor_map = {}
     for item in network:
@@ -144,6 +147,10 @@ class CalibrationInitializer :
         file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/left/image_color" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/left/camera_info" />\n\n')
+      elif sensor['type'] == 'zed':
+        file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
+        file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/rgb/image_rect_color" />\n')
+        file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/rgb/camera_info" />\n\n')
       else:
         rospy.logfatal('Sensor type "' + sensor['type'] + '" not supported yet!');
       index = index + 1
@@ -250,7 +257,9 @@ class CalibrationInitializer :
           sensor_msg.type = OPTSensorRequest.TYPE_STEREO_PG
           sensor_msg.serial_left = sensor_item['serial_left']
           sensor_msg.serial_right = sensor_item['serial_right']
-      
+        sensor_msg.enable_pose = self.enable_pose
+        sensor_msg.enable_object = self.enable_object
+        sensor_msg.enable_people_tracking = self.enable_people_tracking
         # Invoke service
         try:
           add_sensor = rospy.ServiceProxy(service_name, OPTSensor)
@@ -267,6 +276,9 @@ class CalibrationInitializer :
           
   def createDetectorLaunch(self) :
     self.__invokeService('create_detector_launch')
+
+  def createTrackerLaunch(self) :
+    self.__invokeService('create_tracker_launch')
     
 
 if __name__ == '__main__' :
@@ -283,6 +295,7 @@ if __name__ == '__main__' :
     
     initializer.createSensorLaunch()
     initializer.createDetectorLaunch()
+    initializer.createTrackerLaunch()
     
     rospy.loginfo('Initialization completed. Press [ctrl+c] to exit.')
     

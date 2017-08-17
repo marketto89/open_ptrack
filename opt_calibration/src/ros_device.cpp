@@ -10,7 +10,7 @@ namespace opt_calibration
 void PinholeRGBDevice::imageCallback(const sensor_msgs::Image::ConstPtr & image_msg)
 {
   last_messages_.image_msg = image_msg;
-  setHasNewMessages(last_messages_.camera_info_msg);
+  setHasNewMessages(last_messages_.camera_info_msg.get() != 0);
 }
 
 void PinholeRGBDevice::cameraInfoCallback(const sensor_msgs::CameraInfo::ConstPtr & camera_info_msg)
@@ -23,7 +23,7 @@ void PinholeRGBDevice::cameraInfoCallback(const sensor_msgs::CameraInfo::ConstPt
     sensor_->setFrameId(frameId());
     sensor_->setCameraModel(cm);
   }
-  setHasNewMessages(last_messages_.image_msg);
+  setHasNewMessages(last_messages_.image_msg.get() != 0);
 }
 
 void PinholeRGBDevice::createSubscribers(ros::NodeHandle & nh,
@@ -74,7 +74,7 @@ void KinectDevice::imageCallback(const sensor_msgs::Image::ConstPtr & image_msg,
     color_sensor_->setFrameId(colorFrameId());
     color_sensor_->setCameraModel(cm);
   }
-  setHasNewMessages(last_messages_.cloud_msg);
+  setHasNewMessages(last_messages_.cloud_msg.get() != 0);
 }
 
 
@@ -157,7 +157,7 @@ void SwissRangerDevice::imageCallback(const sensor_msgs::Image::ConstPtr & image
     intensity_sensor_->setFrameId(frameId());
     intensity_sensor_->setCameraModel(cm);
   }
-  setHasNewMessages(last_messages_.cloud_msg);
+  setHasNewMessages(last_messages_.cloud_msg.get() != 0);
 }
 
 void SwissRangerDevice::createSubscribers(ros::NodeHandle & nh,

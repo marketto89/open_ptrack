@@ -135,6 +135,8 @@ namespace open_ptrack
       last_time_predicted_ = last_time_detected_ = last_time_detected_with_high_confidence_ = detection_source->getTime();
       last_time_predicted_index_ = 0;
       age_ = 0.0;
+
+
     }
 
     void
@@ -160,12 +162,21 @@ namespace open_ptrack
         ros::Duration d2(2.0);
 
         double t = std::max(first_time_detected_.toSec(), (detection_source->getTime() - d).toSec());
+//        std::cout << "t1: " << t << std::endl;
         t = std::min(t, last_time_detected_.toSec());
+//        std::cout << "t2: " << t << std::endl;
         t = std::max(t, (detection_source->getTime() - d2).toSec());
+//        std::cout << "t3: " << t << std::endl;
         double dt = t - last_time_predicted_.toSec();
-
+//        std::cout << "dt: " << dt << std::endl;
         difference = int(round(dt / period_));
+//        std::cout << "period: " << period_ << std::endl;
+//        std::cout << "difference: " << difference << std::endl;
         int vIndex = (MAX_SIZE + last_time_predicted_index_ + difference) % MAX_SIZE;
+//        std::cout << vIndex << std::endl;
+
+//        difference = int(round(dt / period_));
+//        int vIndex = (MAX_SIZE + last_time_predicted_index_ + difference) % MAX_SIZE;
 
         if(difference != 0)
         {
@@ -177,6 +188,7 @@ namespace open_ptrack
           vx = mahalanobis_map4d_[vIndex].x;
           vy = mahalanobis_map4d_[vIndex].x;
         }
+//        std::cout << "Mahalanobis: " << mahalanobis_map4d_[vIndex].x << "," << mahalanobis_map4d_[vIndex].y << std::endl;
       }
 
       // Update Kalman filter from the last time the track was visible:

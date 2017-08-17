@@ -37,13 +37,35 @@
  */
 
 #include <ros/ros.h>
+#include <signal.h>
 #include <open_ptrack/opt_utils/udp_messaging.h>
+
+void mySigintHandler(int sig)
+{
+  // Do some custom action.
+  // For example, publish a stop message to some other nodes.
+
+  // All the default sigint handler does is call shutdown()
+  ros::shutdown();
+}
+void mySigTermHandler(int sig)
+{
+  // Do some custom action.
+  // For example, publish a stop message to some other nodes.
+
+  // All the default sigint handler does is call shutdown()
+  ros::shutdown();
+}
 
 int main(int argc, char **argv)
 {
   // Initialization:
   ros::init(argc, argv, "ros2udp_converter");
   ros::NodeHandle nh("~");
+  signal(SIGINT, mySigintHandler);
+  signal(SIGTERM, mySigintHandler);
+  signal(SIGKILL, mySigintHandler);
+
 
   // Read input parameters:
   int udp_buffer_length;
@@ -68,7 +90,7 @@ int main(int argc, char **argv)
 
   // Create UDP server:
   udp_messaging.createSocketServerUDP(&udp_data);
-  while (true)
+  while (ros::ok())
   {
     // Listen to UDP messages and write them to console:
     udp_messaging.receiveFromSocketUDP(&udp_data);
@@ -81,6 +103,7 @@ int main(int argc, char **argv)
     }
 
     ros::spinOnce();
+    ros::Rate(30).sleep();
   }
 
   // Close UDP server:

@@ -2,7 +2,7 @@
   <arg name="camera_name"             default="kinect2_head" />
 
   <!-- Start the Kinect -->
-  <include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch"/> 
+  <!--include file="$(find kinect2_bridge)/launch/kinect2_bridge_ir.launch"/--> 
 
    <!-- Launch ground based people detection node -->
    <node pkg="detection" type="ground_based_people_detector" name="ground_based_people_detector" output="screen" required="true">

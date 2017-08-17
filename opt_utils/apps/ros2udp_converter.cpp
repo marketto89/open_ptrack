@@ -39,6 +39,12 @@
 #include <ros/ros.h>
 #include <opt_msgs/TrackArray.h>
 #include <opt_msgs/IDArray.h>
+#include <opt_msgs/SkeletonTrackArray.h>
+#include <opt_msgs/StandardSkeletonTrackArray.h>
+#include <opt_msgs/PoseRecognitionArray.h>
+#include <body_pose_estimation/skeleton_base.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/time_synchronizer.h>
 #include <open_ptrack/opt_utils/udp_messaging.h>
 #include <open_ptrack/opt_utils/json.h>
 
@@ -55,6 +61,8 @@ open_ptrack::opt_utils::UDPMessaging udp_messaging(udp_data);   // instance of c
 ros::Time last_heartbeat_time;
 double heartbeat_interval;
 
+using namespace open_ptrack::bpe;
+
 void
 trackingCallback(const opt_msgs::TrackArray::ConstPtr& tracking_msg)
 {
@@ -66,7 +74,12 @@ trackingCallback(const opt_msgs::TrackArray::ConstPtr& tracking_msg)
   stamp.Add("sec", int(tracking_msg->header.stamp.sec));
   stamp.Add("nsec", int(tracking_msg->header.stamp.nsec));
   header.Add("stamp", stamp);
-  header.Add("frame_id", tracking_msg->header.frame_id);
+  std::string camera_name = tracking_msg->header.frame_id;
+    if (strcmp(camera_name.substr(0,1).c_str(), "/") == 0)  // Remove bar at the beginning
+    {
+      camera_name = camera_name.substr(1, camera_name.size() - 1);
+    }
+  header.Add("frame_id", camera_name);
   root.Add("header", header);
 
   /// Add tracks array:
@@ -84,7 +97,7 @@ trackingCallback(const opt_msgs::TrackArray::ConstPtr& tracking_msg)
 
     tracks.Add(current_track);
   }
-  root.Add("tracks", tracks);
+  root.Add("people_tracks", tracks);
 
   /// Convert JSON object to string:
   Jzon::Format message_format = Jzon::StandardFormat;
@@ -95,11 +108,12 @@ trackingCallback(const opt_msgs::TrackArray::ConstPtr& tracking_msg)
   Jzon::Writer writer(root, message_format);
   writer.Write();
   std::string json_string = writer.GetResult();
-//  std::cout << "String sent: " << json_string << std::endl;
+  //  std::cout << "String sent: " << json_string << std::endl;
 
   /// Copy string to message buffer:
-  char buf[udp_buffer_length];
-  for (unsigned int i = 0; i < udp_buffer_length; i++)
+  udp_data.si_num_byte_ = json_string.length()+1;
+  char buf[udp_data.si_num_byte_];
+  for (unsigned int i = 0; i < udp_data.si_num_byte_; i++)
   {
     buf[i] = 0;
   }
@@ -147,8 +161,9 @@ aliveIDsCallback(const opt_msgs::IDArray::ConstPtr& alive_ids_msg)
     //  std::cout << "String sent: " << json_string << std::endl;
 
     /// Copy string to message buffer:
-    char buf[udp_buffer_length];
-    for (unsigned int i = 0; i < udp_buffer_length; i++)
+    udp_data.si_num_byte_ = json_string.length()+1;
+    char buf[udp_data.si_num_byte_];
+    for (unsigned int i = 0; i < udp_data.si_num_byte_; i++)
     {
       buf[i] = 0;
     }
@@ -167,21 +182,21 @@ typedef unsigned long uint32;
 static uint32 Inet_AtoN(const char * buf)
 {
 
-   uint32 ret = 0;
-   int shift = 24;  // fill out the MSB first
-   bool startQuad = true;
-   while((shift >= 0)&&(*buf))
-   {
-      if (startQuad)
-      {
-         unsigned char quad = (unsigned char) atoi(buf);
-         ret |= (((uint32)quad) << shift);
-         shift -= 8;
-      }
-      startQuad = (*buf == '.');
-      buf++;
-   }
-   return ret;
+  uint32 ret = 0;
+  int shift = 24;  // fill out the MSB first
+  bool startQuad = true;
+  while((shift >= 0)&&(*buf))
+  {
+    if (startQuad)
+    {
+      unsigned char quad = (unsigned char) atoi(buf);
+      ret |= (((uint32)quad) << shift);
+      shift -= 8;
+    }
+    startQuad = (*buf == '.');
+    buf++;
+  }
+  return ret;
 }
 
 int
@@ -202,8 +217,11 @@ main(int argc, char **argv)
   nh.param("json/heartbeat_interval", heartbeat_interval, 0.25);
 
   // ROS subscriber:
-  ros::Subscriber tracking_sub = nh.subscribe<opt_msgs::TrackArray>("input_topic", 1, trackingCallback);
-  ros::Subscriber alive_ids_sub = nh.subscribe<opt_msgs::IDArray>("alive_ids_topic", 1, aliveIDsCallback);
+  ros::Subscriber tracking_sub = nh.subscribe<opt_msgs::TrackArray>
+      ("input_topic", 1, trackingCallback);
+  ros::Subscriber alive_ids_sub = nh.subscribe<opt_msgs::IDArray>
+      ("alive_ids_topic", 1, aliveIDsCallback);
+
 
   // Initialize UDP parameters:
   char buf[0];

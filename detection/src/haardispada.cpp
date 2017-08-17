@@ -36,6 +36,7 @@ POSSIBILITY OF SUCH DAMAGE.
 /*****************************************************************************
  ** Namespaces
  *****************************************************************************/
+ 
 namespace open_ptrack
 {
   namespace detection
@@ -80,7 +81,7 @@ namespace open_ptrack
           int rtn = haar_features_fast(HF); // compute haar features
           if(rtn== 1){
             // Compute classifier score:
-            result = HDAC_.predict(HF);
+            result = HDAC_->predict(HF);//float s = model->predict( temp_sample, noArray(), StatModel::RAW_OUTPUT );
           }
           else{
             ROS_ERROR("WHY O WHY");
@@ -120,7 +121,8 @@ namespace open_ptrack
           int rtn = haar_features_fast(HF); // compute haar features
           if(rtn== 1){
             // Compute classifier score:
-            result = HDAC_.predict(HF, cv::Mat(), cv::Range::all(), false, true);
+            //result = HDAC_->predict(HF, cv::Mat(), cv::Range::all(), false, true);//float s = model->predict( temp_sample, noArray(), StatModel::RAW_OUTPUT );
+            result = HDAC_->predict( HF, cv::noArray(), cv::ml::StatModel::RAW_OUTPUT );
           }
           else{
             ROS_ERROR("WHY O WHY");
@@ -188,33 +190,47 @@ namespace open_ptrack
     void
     HaarDispAdaClassifier::train(string filename)
     {
-      CvBoostParams bparams = CvBoostParams();
-      float priorFloat[] = { 1.0, HaarDispAdaPrior_ };  // preliminary priors based on ROC)
-      bparams.priors = &priorFloat[0];
-      bparams.use_surrogates = false;
-      bparams.weak_count = 100;
+      //CvBoostParams bparams = CvBoostParams();
+      //float priorFloat[] = { 1.0, HaarDispAdaPrior_ };  // preliminary priors based on ROC)
+      //bparams.priors = &priorFloat[0];
+      //bparams.use_surrogates = false;
+      //bparams.weak_count = 100;
+      vector<double> priors(2);
+      priors[0] = 1;
+      priors[1] = 26;
 
       // copy sub matrix for training
-      Mat VarIdx;
-      Mat Features(numSamples_,num_filters_,CV_32F);
+      cv::Mat VarIdx;
+      cv::Mat Features(numSamples_,num_filters_,CV_32F);
       for(int i=0;i<numSamples_;i++){
         for(int j=0;j<num_filters_;j++){
           Features.at<float>(i,j)       = trainingSamples_.at<float>(i,j);
         }
       }
-      Mat Responses(numSamples_,1,CV_32S);
+      cv::Mat Responses(numSamples_,1,CV_32S);
       for(int i=0; i<numSamples_;i++){
         if(trainingLabels_.at<int>(i,0) == -1) trainingLabels_.at<int>(i,0) = 0;//classes: 0,1
         Responses.at<int>(i,0) = trainingLabels_.at<int>(i,0);
       }
-      Mat vIdx=Mat::ones(Features.cols,1,CV_8UC1); // variables of interest
-      Mat sIdx=Mat::ones(Responses.rows,1,CV_8UC1); // samples of interest
-      Mat vtyp=Mat(Features.cols,1,CV_8UC1,CV_VAR_ORDERED); // could be VAR_CATAGORICAL(discrete)
-      Mat MDM; // no missing mask
-      HDAC_.train(Features, CV_ROW_SAMPLE, Responses,vIdx,sIdx,vtyp,MDM,bparams,false);
+      cv::Mat vIdx=cv::Mat::ones(Features.cols,1,CV_8UC1); // variables of interest
+      cv::Mat sIdx=cv::Mat::ones(Responses.rows,1,CV_8UC1); // samples of interest
+      cv::Mat vtyp=cv::Mat(Features.cols,1,CV_8UC1,cv::ml::VAR_ORDERED); // could be VAR_CATAGORICAL(discrete)
+      //Mat MDM; // no missing mask
+      
+      //boost->setBoostType(Boost::DISCRETE);
+      HDAC_->setWeakCount(100);
+      HDAC_->setWeightTrimRate(0.95);
+      //HDAC_->setMaxDepth(2);
+      HDAC_->setUseSurrogates(false);
+      HDAC_->setPriors(cv::Mat(priors));
+      
+      //prepare_train_data( Features, Responses );
+      //HDAC_.train(Features, CV_ROW_SAMPLE, Responses,vIdx,sIdx,vtyp,MDM,bparams,false);//
+      cv::Ptr<cv::ml::TrainData> tdata = cv::ml::TrainData::create(Features, cv::ml::ROW_SAMPLE, Responses, vIdx, sIdx, cv::noArray(), vtyp);
+      HDAC_->train(tdata);
       ROS_ERROR("saving trained classifier to %s",filename.c_str());
       loaded = true;
-      HDAC_.save(filename.c_str());
+      HDAC_->save(filename.c_str());
       // Determine Recall Statistics
       int num_TP     = 0;
       int num_FP     = 0;
@@ -223,7 +239,7 @@ namespace open_ptrack
       int num_TN     = 0;
       int num_FN     = 0;
       for(int i=0;i<Features.rows;i++){
-        float result = HDAC_.predict(Features.row(i));
+        float result = HDAC_->predict(Features.row(i));//float s = model->predict( temp_sample, noArray(), StatModel::RAW_OUTPUT );
         if(Responses.at<int>(i,0) == 1) num_people++;
         if(Responses.at<int>(i,0) != 1) num_neg++;
         if(result==1 && Responses.at<int>(i,0) == 1) num_TP++; // true pos
@@ -280,7 +296,8 @@ namespace open_ptrack
     void
     HaarDispAdaClassifier::load(string filename)
     {
-      HDAC_.load(filename.c_str());
+      //HDAC_->load(filename.c_str());//Ptr<T> model = StatModel::load<T>( filename_to_load );
+      HDAC_ = cv::ml::StatModel::load<cv::ml::Boost>( filename.c_str() );
       loaded = true;
     }
 

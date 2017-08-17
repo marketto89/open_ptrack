@@ -48,127 +48,127 @@
 
 namespace open_ptrack
 {
-  namespace tracking
+namespace tracking
+{
+/** \brief PredictModel Prediction model (linear state predict model) */
+class PredictModel : public Bayesian_filter::Linear_predict_model
+{
+protected:
+  /* \brief time step */
+  const double dt_;
+
+public:
+  /** \brief Constructor. */
+  PredictModel(double dt, double acceleration_variance);
+
+  /** \brief Destructor. */
+  virtual ~PredictModel();
+};
+
+/** \brief ObserveModel Observation model (linear observation is additive uncorrelated model) */
+class ObserveModel : public Bayesian_filter::Linear_uncorrelated_observe_model
+{
+protected:
+  /** \brief Position variance. */
+  double position_variance_;
+
+public:
+  /** \brief Constructor. */
+  ObserveModel(double position_variance, int ouput_dimension);
+
+  /** \brief Destructor. */
+  virtual ~ObserveModel();
+};
+
+/** \brief MahalanobisParameters2d Contains variables for bayesian estimation with state dimension = 2. */
+class MahalanobisParameters2d
+{
+public:
+
+  MahalanobisParameters2d() : SI(Bayesian_filter_matrix::Empty), x(0), y(0)
   {
-    /** \brief PredictModel Prediction model (linear state predict model) */
-    class PredictModel : public Bayesian_filter::Linear_predict_model
-    {
-      protected:
-        /* \brief time step */
-        const double dt_;
+    SI.resize(2, 2, false);
+  }
 
-      public:
-        /** \brief Constructor. */
-        PredictModel(double dt, double acceleration_variance);
+  /** \brief Innovation covariance matrix. */
+  Bayesian_filter::FM::SymMatrix SI;
 
-        /** \brief Destructor. */
-        virtual ~PredictModel();
-    };
+  /** \brief Position x component. */
+  double x;
 
-    /** \brief ObserveModel Observation model (linear observation is additive uncorrelated model) */
-    class ObserveModel : public Bayesian_filter::Linear_uncorrelated_observe_model
-    {
-      protected:
-        /** \brief Position variance. */
-        double position_variance_;
+  /** \brief Position y component. */
+  double y;
+};
 
-      public:
-        /** \brief Constructor. */
-        ObserveModel(double position_variance, int ouput_dimension);
+/** \brief MahalanobisParameters4d Contains variables for bayesian estimation with state dimension = 4. */
+class MahalanobisParameters4d
+{
+public:
 
-        /** \brief Destructor. */
-        virtual ~ObserveModel();
-    };
+  MahalanobisParameters4d() : SI(Bayesian_filter_matrix::Empty), x(0), y(0), vx(0), vy(0)
+  {
+    SI.resize(4, 4, false);
+  }
 
-    /** \brief MahalanobisParameters2d Contains variables for bayesian estimation with state dimension = 2. */
-    class MahalanobisParameters2d
-    {
-      public:
+  /** \brief Innovation covariance matrix. */
+  Bayesian_filter::FM::SymMatrix SI;
 
-        MahalanobisParameters2d() : SI(Bayesian_filter_matrix::Empty), x(0), y(0)
-      {
-          SI.resize(2, 2, false);
-      }
+  /** \brief Position x component. */
+  double x;
 
-        /** \brief Innovation covariance matrix. */
-        Bayesian_filter::FM::SymMatrix SI;
+  /** \brief Position y component. */
+  double y;
 
-        /** \brief Position x component. */
-        double x;
+  /** \brief Velocity x component. */
+  double vx;
 
-        /** \brief Position y component. */
-        double y;
-    };
+  /** \brief Velocity y component. */
+  double vy;
+};
 
-    /** \brief MahalanobisParameters4d Contains variables for bayesian estimation with state dimension = 4. */
-    class MahalanobisParameters4d
-    {
-      public:
+/** \brief KalmanFilter provides methods for bayesian estimation with Kalman Filter. */
+class KalmanFilter
+{
+protected:
 
-        MahalanobisParameters4d() : SI(Bayesian_filter_matrix::Empty), x(0), y(0), vx(0), vy(0)
-      {
-          SI.resize(4, 4, false);
-      }
+  /** \brief Time interval.*/
+  double dt_;
 
-        /** \brief Innovation covariance matrix. */
-        Bayesian_filter::FM::SymMatrix SI;
+  /** \brief Scale factor for computing depth noise variance.*/
+  double depth_multiplier_;
 
-        /** \brief Position x component. */
-        double x;
+  /** \brief Position variance. */
+  double position_variance_;
 
-        /** \brief Position y component. */
-        double y;
+  /** \brief Acceleration variance.*/
+  double acceleration_variance_;
 
-        /** \brief Velocity x component. */
-        double vx;
+  /** \brief State/output dimension.*/
+  int output_dimension_;
 
-        /** \brief Velocity y component. */
-        double vy;
-    };
+  Bayesian_filter::Unscented_scheme* filter_;
 
-    /** \brief KalmanFilter provides methods for bayesian estimation with Kalman Filter. */
-    class KalmanFilter
-    {
-      protected:
+  /** \brief Prediction model. */
+  PredictModel* predict_model_;
 
-        /** \brief Time interval.*/
-        double dt_;
+  /** \brief Observation model. */
+  ObserveModel* observe_model_;
 
-        /** \brief Scale factor for computing depth noise variance.*/
-        double depth_multiplier_;
+public:
 
-        /** \brief Position variance. */
-        double position_variance_;
+  /** \brief Constructor. */
+  KalmanFilter(double dt, double position_variance, double acceleration_variance, int output_dimension);
 
-        /** \brief Acceleration variance.*/
-        double acceleration_variance_;
+  /** \brief Constructor initializing a new KalmanFilter with another one. */
+  KalmanFilter(const KalmanFilter& orig);
 
-        /** \brief State/output dimension.*/
-        int output_dimension_;
+  /** \brief Overload of = operator for copying KalmanFilter objects. */
+  KalmanFilter& operator=(const KalmanFilter& orig);
 
-        Bayesian_filter::Unscented_scheme* filter_;
+  /** \brief Destructor. */
+  virtual ~KalmanFilter();
 
-        /** \brief Prediction model. */
-        PredictModel* predict_model_;
-
-        /** \brief Observation model. */
-        ObserveModel* observe_model_;
-
-      public:
-
-        /** \brief Constructor. */
-        KalmanFilter(double dt, double position_variance, double acceleration_variance, int output_dimension);
-
-        /** \brief Constructor initializing a new KalmanFilter with another one. */
-        KalmanFilter(const KalmanFilter& orig);
-
-        /** \brief Overload of = operator for copying KalmanFilter objects. */
-        KalmanFilter& operator=(const KalmanFilter& orig);
-
-        /** \brief Destructor. */
-        virtual ~KalmanFilter();
-
-        /**
+  /**
          * \brief Filter initialization procedure.
          *
          * \param[in] x Position x component.
@@ -176,16 +176,16 @@ namespace open_ptrack
          * \param[in] distance Distance from the sensor.
          * \param[in] velocity_in_motion_term If true, both target position and velocity constitute the output vector.
          */
-        void
-        init(double x, double y, double distance, bool velocity_in_motion_term);
+  virtual void
+  init(double x, double y, double distance, bool velocity_in_motion_term);
 
-        /**
+  /**
          * \brief Prediction step.
          */
-        void
-        predict();
+  virtual void
+  predict();
 
-        /**
+  /**
          * \brief Prediction step.
          *
          * \param[out] x Position x component.
@@ -193,26 +193,26 @@ namespace open_ptrack
          * \param[out] vx Velocity x component.
          * \param[out] vy Velocity y component.
          */
-        void
-        predict(double& x, double& y, double& vx, double& vy);
+  virtual void
+  predict(double& x, double& y, double& vx, double& vy);
 
-        /**
+  /**
          * \brief Update step.
          */
-        void
-        update();
+  virtual void
+  update();
 
-        /**
+  /**
          * \brief Update step.
          *
          * \param[in] x Position x component.
          * \param[in] y Position y component.
          * \param[in] distance Distance from the sensor.
          */
-        void
-        update(double x, double y, double distance);
+  virtual void
+  update(double x, double y, double distance);
 
-        /**
+  /**
          * \brief Update step.
          *
          * \param[in] x Position x component.
@@ -221,10 +221,10 @@ namespace open_ptrack
          * \param[in] vy Velocity y component.
          * \param[in] distance Distance from the sensor.
          */
-        void
-        update(double x, double y, double vx, double vy, double distance);
+  virtual void
+  update(double x, double y, double vx, double vy, double distance);
 
-        /**
+  /**
          * \brief Get filter state.
          *
          * \param[out] x Position x component.
@@ -232,35 +232,35 @@ namespace open_ptrack
          * \param[out] vx Velocity x component.
          * \param[out] vy Velocity y component.
          */
-        void
-        getState(double& x, double& y, double& vx, double& vy);
+  virtual void
+  getState(double& x, double& y, double& vx, double& vy);
 
-        /**
+  /**
          * \brief Get filter state.
          *
          * \param[out] x Position x component.
          * \param[out] y Position y component.
          */
-        void
-        getState(double& x, double& y);
+  virtual void
+  getState(double& x, double& y);
 
-        /**
+  /**
          * \brief Obtain variables for bayesian estimation with output dimension = 2.
          *
          * \param[out] mp Object of class MahalanobisParameters2d.
          */
-        void
-        getMahalanobisParameters(MahalanobisParameters2d& mp);
+  virtual void
+  getMahalanobisParameters(MahalanobisParameters2d& mp);
 
-        /**
+  /**
          * \brief Obtain variables for bayesian estimation with output dimension = 4.
          *
          * \param[out] mp Object of class MahalanobisParameters4d.
          */
-        void
-        getMahalanobisParameters(MahalanobisParameters4d& mp);
+  virtual void
+  getMahalanobisParameters(MahalanobisParameters4d& mp);
 
-        /**
+  /**
          * \brief Compute Mahalanobis distance between measurement and target predicted state.
          *
          * \param[in] x Input x position.
@@ -269,10 +269,10 @@ namespace open_ptrack
          *
          * \return Mahalanobis distance between measurement (x,y) and target predicted state.
          */
-        static double
-        performMahalanobisDistance(double x, double y, const MahalanobisParameters2d& mp);
+  static double
+  performMahalanobisDistance(double x, double y, const MahalanobisParameters2d& mp);
 
-        /**
+  /**
          * \brief Compute Mahalanobis distance between measurement and target predicted state.
          *
          * \param[in] x Input x position.
@@ -283,35 +283,34 @@ namespace open_ptrack
          *
          * \return Mahalanobis distance between measurement (x,y,vx,vy) and target predicted state.
          */
-        static double
-        performMahalanobisDistance(double x, double y, double vx, double vy, const MahalanobisParameters4d& mp);
+  static double
+  performMahalanobisDistance(double x, double y, double vx, double vy, const MahalanobisParameters4d& mp);
 
-        /**
+  /**
          * \brief Get filter innovation covariance.
          *
          * \return innovation covariance matrix.
          */
-        Bayesian_filter::FM::SymMatrix
-        getInnovationCovariance();
+  virtual Bayesian_filter::FM::SymMatrix
+  getInnovationCovariance();
 
-        /**
+  /**
          * \brief Set prediction model.
          *
          * \param[in] acceleration_variance Acceleration variance.
          */
-        void
-        setPredictModel (double acceleration_variance);
+  virtual void
+  setPredictModel (double acceleration_variance);
 
-        /**
+  /**
          * \brief Set observation model.
          *
          * \param[in] position_variance Position variance.
          */
-        void
-        setObserveModel (double position_variance);
+  virtual void
+  setObserveModel (double position_variance);
 
-    };
-
-  } /* namespace tracking */
+};
+} /* namespace tracking */
 } /* namespace open_ptrack */
 #endif /* OPEN_PTRACK_TRACKING_KALMAN_FILTER_H_ */

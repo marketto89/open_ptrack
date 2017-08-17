@@ -76,8 +76,8 @@ namespace open_ptrack
       return source_;
     }
 
-    Eigen::Vector3d&
-    Detection::getWorldCentroid()
+    Eigen::Vector3d
+    Detection::getWorldCentroid() const
     {
       return world_centroid_;
     }
@@ -128,6 +128,12 @@ namespace open_ptrack
     Detection::getImage()
     {
       return source_->getImage();
+    }
+
+    std::string
+    Detection::getObjectName()
+    {
+      return detection_msg_.object_name;
     }
 
     void
