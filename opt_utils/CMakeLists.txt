@@ -11,7 +11,7 @@ link_directories(${OpenCV_LIB_DIR})
 
 find_package(PCL REQUIRED)
 
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 include_directories(${Eigen_INCLUDE_DIRS} include ${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS})
 
 generate_dynamic_reconfigure_options(

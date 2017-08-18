@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS cmake_modules roscpp opt_msgs calibratio
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(Boost REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 
@@ -34,7 +34,7 @@ catkin_package(
   INCLUDE_DIRS include
 #  LIBRARIES
   CATKIN_DEPENDS roscpp opt_msgs calibration_common camera_info_manager cv_bridge image_transport swissranger_camera
-  DEPENDS eigen pcl opencv2
+#  DEPENDS eigen pcl opencv2
 )
 
 ###########
