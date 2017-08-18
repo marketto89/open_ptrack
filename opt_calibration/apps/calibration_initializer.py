@@ -36,6 +36,7 @@
 # Author: Matteo Munaro [matteo.munaro@dei.unipd.it]
 #         Filippo Basso [filippo.basso@dei.unipd.it]
 #         Marco Carraro [carraromarco89@gmail.com]
+#         Chandler Brown
 #
 ######################################################################
 
@@ -212,6 +213,10 @@ class CalibrationInitializer :
         file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/left/image_color" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/left/camera_info" />\n\n')
+      elif sensor['type'] == 'zed':
+        file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
+        file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/rgb/image_rect_color" />\n')
+        file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/rgb/camera_info" />\n\n')
       else:
         rospy.logfatal('Sensor type "' + sensor['type'] + '" not supported yet!');
       index = index + 1
@@ -257,6 +262,10 @@ class CalibrationInitializer :
           sensor_msg.type = OPTSensorRequest.TYPE_STEREO_PG
           sensor_msg.serial_left = sensor_item['serial_left']
           sensor_msg.serial_right = sensor_item['serial_right']
+	elif sensor_item['type'] == 'zed':
+          sensor_msg.type = OPTSensorRequest.TYPE_ZED
+          if 'id_num' in sensor_item:
+            sensor_msg.id_num = sensor_item['id_num']
         sensor_msg.enable_pose = self.enable_pose
         sensor_msg.enable_object = self.enable_object
         sensor_msg.enable_people_tracking = self.enable_people_tracking
