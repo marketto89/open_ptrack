@@ -23,7 +23,7 @@
 extern  "C"{
 #include "network.h"
 #include "image.h"
-#include "/home/remap1604/workspace/ros/src/open_ptrack_yolo_detector/include/run_yolo.h"
+#include "run_yolo.h"
 #include "parser.h"
 
 #include "network.h"

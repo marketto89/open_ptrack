@@ -35,6 +35,7 @@ list (REMOVE_ITEM SRC_LIST ${DARKNET_SRC_DIR}/src/darknet.c)
 
 
 include_directories(
+  include
 	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
 	${CUDA_INCLUDE_DIRS}
