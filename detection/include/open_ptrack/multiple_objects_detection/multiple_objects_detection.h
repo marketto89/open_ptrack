@@ -57,7 +57,7 @@
 #include <message_filters/sync_policies/exact_time.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-//#include <kinect2_definitions.h>
+#include <kinect2_definitions.h>
 
 #include "open_ptrack/multiple_objects_detection/object_detector.h"
 #include "open_ptrack/multiple_objects_detection/roi_zz.h"
@@ -188,9 +188,9 @@ public:
       use_background_removal(use_background_removal),objects_selected(false), finished_select_rois_from_file(false),background_calculate_frames(background_calculate_frames),threshold_4_detecting_foreground(threshold_4_detecting_foreground), queueSize(5),
       nh(), spinner(0), it(nh) ,show_2D_tracks(show_2D_tracks)
   {
-//    std::string cameraName = "kinect2_head";
-    topicColor = "/kinect2_head/rgb_lowres/image";
-    topicDepth = "/kinect2_head/depth_lowres/image";
+    std::string cameraName = "kinect2_head";
+    topicColor = "/" + cameraName + "/" + K2_TOPIC_LORES_COLOR K2_TOPIC_RAW;
+    topicDepth = "/" + cameraName + "/" + K2_TOPIC_LORES_DEPTH K2_TOPIC_RAW;
 
     cameraMatrixColor = cv::Mat::zeros(3, 3, CV_64F);
     cameraMatrixDepth = cv::Mat::zeros(3, 3, CV_64F);
