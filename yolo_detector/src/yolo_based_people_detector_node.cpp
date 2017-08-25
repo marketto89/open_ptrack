@@ -18,7 +18,7 @@
 #include <vector>
 #include <image_transport/image_transport.h>
 #include <dynamic_reconfigure/server.h>
-#include <yolo_detector/Open_PTrack_YoloConfig.h>
+#include <yolo_detector/open_ptrack_yoloConfig.h>
 
 extern  "C"{
 #include "network.h"
@@ -94,7 +94,7 @@ void camera_info_cb (const CameraInfo::ConstPtr & msg)
 	camera_info_available_flag = true;
 }
 
-void dynamic_callback(open_ptrack_yolo_detector::Open_PTrack_YoloConfig &config, uint32_t level) 
+void dynamic_callback(open_ptrack_yolo_detector::open_ptrack_yoloConfig &config, uint32_t level) 
 {
 	std::cout << "Adjusting Parameters" <<  std::endl;
 	thresh = (float)config.Thresh;
@@ -394,8 +394,8 @@ int main(int argc, char** argv)
     pub = it.advertise("yolo_detector/image", 1);
     detection_pub= nh.advertise<DetectionArray>(output_topic, 3);
     
-    dynamic_reconfigure::Server<open_ptrack_yolo_detector::Open_PTrack_YoloConfig> server;
-    dynamic_reconfigure::Server<open_ptrack_yolo_detector::Open_PTrack_YoloConfig>::CallbackType f;
+    dynamic_reconfigure::Server<open_ptrack_yolo_detector::open_ptrack_yoloConfig> server;
+    dynamic_reconfigure::Server<open_ptrack_yolo_detector::open_ptrack_yoloConfig>::CallbackType f;
     
     f = boost::bind(&dynamic_callback, _1, _2);
     server.setCallback(f);
