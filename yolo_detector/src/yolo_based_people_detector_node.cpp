@@ -18,7 +18,7 @@
 #include <vector>
 #include <image_transport/image_transport.h>
 #include <dynamic_reconfigure/server.h>
-#include <open_ptrack_yolo_detector/Open_PTrack_YoloConfig.h>
+#include <yolo_detector/Open_PTrack_YoloConfig.h>
 
 extern  "C"{
 #include "network.h"
