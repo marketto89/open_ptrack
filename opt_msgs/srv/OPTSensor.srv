@@ -4,11 +4,14 @@ uint8 TYPE_SR4500=2
 uint8 TYPE_STEREO_PG=3
 uint8 TYPE_KINECT2=4
 uint8 TYPE_ZED=5
+uint8 PEOPLE_DETECTOR_MUNARO_BASED=0
+uint8 PEOPLE_DETECTOR_YOLO_BASED=1
 
 uint64 session_id
 
 string id
 uint8  type
+uint8  people_detector_type
 
 # if TYPE_KINECT1 | TYPE_KINECT2
 string serial

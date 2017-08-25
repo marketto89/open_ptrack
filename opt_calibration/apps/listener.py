@@ -125,26 +125,26 @@ class Listener :
     
     file.write('  <!-- Sensor parameters -->\n')
     
-    if request.type == OPTSensorRequest.TYPE_SR4500:
-      file.write('  <arg name="camera_id"   default="' + request.id + '" />\n')
-      if request.ip == '':
-        file.close();
-        rospy.logerr('Missing "ip" field for the SR4500 sensor!')
-        return (OPTSensorResponse.STATUS_ERROR, 'Missing "ip" field!')
-      file.write('  <arg name="device_ip"   default="' + request.ip + '" />\n\n')
+    # if request.type == OPTSensorRequest.TYPE_SR4500:
+    #   file.write('  <arg name="camera_id"   default="' + request.id + '" />\n')
+    #   if request.ip == '':
+    #     file.close();
+    #     rospy.logerr('Missing "ip" field for the SR4500 sensor!')
+    #     return (OPTSensorResponse.STATUS_ERROR, 'Missing "ip" field!')
+    #   file.write('  <arg name="device_ip"   default="' + request.ip + '" />\n\n')
       
-      file.write('  <!-- Launch sensor -->\n')
-      file.write('  <include file="$(find swissranger_camera)/launch/sr_eth.launch">\n')
-      file.write('    <arg name="camera_id" value="$(arg camera_id)" />\n')
-      file.write('    <arg name="device_ip" value="$(arg device_ip)" />\n')
-      file.write('  </include>\n\n')
+    #   file.write('  <!-- Launch sensor -->\n')
+    #   file.write('  <include file="$(find swissranger_camera)/launch/sr_eth.launch">\n')
+    #   file.write('    <arg name="camera_id" value="$(arg camera_id)" />\n')
+    #   file.write('    <arg name="device_ip" value="$(arg device_ip)" />\n')
+    #   file.write('  </include>\n\n')
       
-      file.write('  <include file="$(find swissranger_camera)/launch/publisher_for_calibration.launch">\n')
-      file.write('    <arg name="camera_id"       value="$(arg camera_id)" />\n')
-      file.write('    <arg name="camera_info_url" value="file://$(find opt_calibration)/camera_info/$(arg camera_id).yaml" />\n')
-      file.write('  </include>\n\n')
+    #   file.write('  <include file="$(find swissranger_camera)/launch/publisher_for_calibration.launch">\n')
+    #   file.write('    <arg name="camera_id"       value="$(arg camera_id)" />\n')
+    #   file.write('    <arg name="camera_info_url" value="file://$(find opt_calibration)/camera_info/$(arg camera_id).yaml" />\n')
+    #   file.write('  </include>\n\n')
       
-    elif request.type == OPTSensorRequest.TYPE_KINECT1:
+    if request.type == OPTSensorRequest.TYPE_KINECT1:
       file.write('  <arg name="sensor_id"     default="' + request.id + '" />\n')
       if request.serial != '':
         file.write('  <arg name="sensor_serial" default="' + request.serial + '" />\n')
@@ -240,24 +240,24 @@ class Listener :
     else:
       file.write('  <arg name="enable_object" default="false" />\n')
     
-    if request.type == OPTSensorRequest.TYPE_SR4500:
-      file.write('  <arg name="camera_id"       default="' + request.id + '" />\n')
-      if request.ip == '':
-        file.close();
-        rospy.logerr('Missing "ip" field for the SR4500 sensor!')
-        return (OPTSensorResponse.STATUS_ERROR, 'Missing "ip" field!')
-      file.write('  <arg name="device_ip"       default="' + request.ip + '" />\n')
-      file.write('  <arg name="camera_info_url" default="file://$(find opt_calibration)/camera_info/$(arg camera_id).yaml" />\n\n')
+    # if request.type == OPTSensorRequest.TYPE_SR4500:
+    #   file.write('  <arg name="camera_id"       default="' + request.id + '" />\n')
+    #   if request.ip == '':
+    #     file.close();
+    #     rospy.logerr('Missing "ip" field for the SR4500 sensor!')
+    #     return (OPTSensorResponse.STATUS_ERROR, 'Missing "ip" field!')
+    #   file.write('  <arg name="device_ip"       default="' + request.ip + '" />\n')
+    #   file.write('  <arg name="camera_info_url" default="file://$(find opt_calibration)/camera_info/$(arg camera_id).yaml" />\n\n')
       
-      file.write('  <!-- Detection node -->\n')
-      file.write('  <include file="$(find detection)/launch/detector_sr4500.launch">\n')
-      file.write('    <arg name="camera_id"               value="$(arg camera_id)" />\n')
-      file.write('    <arg name="device_ip"               value="$(arg device_ip)" />\n')
-      file.write('    <arg name="ground_from_calibration" value="true" />\n')
-      file.write('    <arg name="camera_info_url"         value="$(arg camera_info_url)" />\n')
-      file.write('  </include>\n\n')
+    #   file.write('  <!-- Detection node -->\n')
+    #   file.write('  <include file="$(find detection)/launch/detector_sr4500.launch">\n')
+    #   file.write('    <arg name="camera_id"               value="$(arg camera_id)" />\n')
+    #   file.write('    <arg name="device_ip"               value="$(arg device_ip)" />\n')
+    #   file.write('    <arg name="ground_from_calibration" value="true" />\n')
+    #   file.write('    <arg name="camera_info_url"         value="$(arg camera_info_url)" />\n')
+    #   file.write('  </include>\n\n')
     
-    elif request.type == OPTSensorRequest.TYPE_KINECT1:
+    if request.type == OPTSensorRequest.TYPE_KINECT1:
       if request.serial != '':
         file.write('  <arg name="device_id"   default="' + request.serial + '" />\n')
       file.write('  <arg name="camera_name" default="' + request.id + '" />\n\n')
@@ -293,7 +293,7 @@ class Listener :
       if request.serial != '':
         file.write('  <arg name="sensor_id"   default="' + request.serial + '" />\n')
       file.write('  <arg name="sensor_name" default="' + request.id + '" />\n\n')
-
+      if 
       file.write('  <!-- true  = Munaro Based OPT Detection -->\n')
       file.write('  <!-- false = YOLO Based Detection (Must Have YOLO installed to use)-->\n')
       file.write('  <arg name="munaro_detection_enabled"         default="true" />\n\n')
@@ -355,21 +355,19 @@ class Listener :
 
       file.write('  <!-- Detection node -->\n')
       file.write('  <group if="$(arg enable_people_tracking)" >\n')
-      file.write('      <group if="$(arg munaro_detection_enabled)">\n')
-      file.write('          <include file="$(find detection)/launch/detector_zed.launch">\n')
-      if request.id_num != '':
-        file.write('    	<arg name="sensor_id"               value="$(arg sensor_id)" />\n')
-      file.write('    	      <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
-      file.write('    	      <arg name="ground_from_calibration" value="true" />\n')
-      file.write('  	</include>\n')
-      file.write('      </group>\n')
-      file.write('      <group unless="$(arg munaro_detection_enabled)" >\n')
-      file.write('  	    <include file="$(find open_ptrack_yolo_detector)/launch/detector_yolo_zed.launch">\n')
-      if request.id_num != '':
-        file.write('              <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
-      file.write('    	        <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
-      file.write('  	    </include>\n')
-      file.write('      </group>\n')
+      if request.people_detector == OPTSensorRequest.PEOPLE_DETECTOR_YOLO_BASED:
+        file.write('          <include file="$(find detection)/launch/detector_zed.launch">\n')
+        if request.id_num != '':
+          file.write('    	<arg name="sensor_id"               value="$(arg sensor_id)" />\n')
+        file.write('    	      <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
+        file.write('    	      <arg name="ground_from_calibration" value="true" />\n')
+        file.write('  	</include>\n')
+      else:
+        file.write('  	    <include file="$(find open_ptrack_yolo_detector)/launch/detector_yolo_zed.launch">\n')
+        if request.id_num != '':
+          file.write('              <arg name="sensor_id"               value="$(arg sensor_id)" />\n')
+        file.write('    	        <arg name="sensor_name"             value="$(arg sensor_name)" />\n')
+        file.write('  	    </include>\n')
       file.write('  </group>\n\n')
 
       #file.write('  <!-- Skeleton Detection node -->\n')

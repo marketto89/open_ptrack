@@ -132,11 +132,11 @@ class CalibrationInitializer :
     index = 0
     for sensor in self.sensor_list:
       file.write('    <param name="sensor_' + str(index) + '/name"         value="/$(arg sensor_' + str(index) + '_name)" />\n')
-      if sensor['type'] == 'sr4500':
-        file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
-        file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/intensity/image_resized" />\n')
-        file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/intensity/camera_info" />\n\n')
-      elif sensor['type'] == 'kinect1':
+      # if sensor['type'] == 'sr4500':
+      #   file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
+      #   file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/intensity/image_resized" />\n')
+      #   file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/intensity/camera_info" />\n\n')
+      if sensor['type'] == 'kinect1':
         file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/rgb/image_color" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/rgb/camera_info" />\n\n')
@@ -197,11 +197,11 @@ class CalibrationInitializer :
     index = 0
     for sensor in self.sensor_list:
       file.write('    <param name="sensor_' + str(index) + '/name"         value="/$(arg sensor_' + str(index) + '_name)" />\n')
-      if sensor['type'] == 'sr4500':
-        file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
-        file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/intensity/image_resized" />\n')
-        file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/intensity/camera_info" />\n\n')
-      elif sensor['type'] == 'kinect1':
+      # if sensor['type'] == 'sr4500':
+      #   file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
+      #   file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/intensity/image_resized" />\n')
+      #   file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/intensity/camera_info" />\n\n')
+      if sensor['type'] == 'kinect1':
         file.write('    <param name="sensor_' + str(index) + '/type"         value="pinhole_rgb" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/image"       to="/$(arg sensor_' + str(index) + '_name)/rgb/image_color" />\n')
         file.write('    <remap from="~sensor_' + str(index) + '/camera_info" to="/$(arg sensor_' + str(index) + '_name)/rgb/camera_info" />\n\n')
@@ -262,10 +262,14 @@ class CalibrationInitializer :
           sensor_msg.type = OPTSensorRequest.TYPE_STEREO_PG
           sensor_msg.serial_left = sensor_item['serial_left']
           sensor_msg.serial_right = sensor_item['serial_right']
-	elif sensor_item['type'] == 'zed':
+        elif sensor_item['type'] == 'zed':
           sensor_msg.type = OPTSensorRequest.TYPE_ZED
           if 'id_num' in sensor_item:
             sensor_msg.id_num = sensor_item['id_num']
+        if sensor_item['people_detector'] == 'yolo':
+          sensor_msg.people_detector = OptSensorRequest.PEOPLE_DETECTOR_YOLO_BASED
+        else:
+          sensor_msg.people_detector = OptSensorRequest.PEOPLE_DETECTOR_MUNARO_BASED
         sensor_msg.enable_pose = self.enable_pose
         sensor_msg.enable_object = self.enable_object
         sensor_msg.enable_people_tracking = self.enable_people_tracking
