@@ -1,18 +1,110 @@
-open_ptrack
-===========
+OpenPTrack fork for the paper:
+Real-time marker-less multi-person 3D pose estimation in RGB-Depth camera networks.
 
-http://openptrack.org/
+This branch in unstable - coming soon the stable version!
+This is for Ubuntu 16.04, if you are interested in the 14.04 please have a look [here](https://github.com/marketto89/open_ptrack/tree/14.04)
 
-OpenPTrack is an open source project launched in 2013 to create a scalable, multi-camera solution for person tracking that specifically aims to support applications in education, art, and culture.
+INSTALLATION INSTRUCTIONS:
 
-With the advent of commercially available consumer depth sensors, and continued efforts in computer vision research to improve multi-modal image and point cloud processing, robust person tracking with the stability and responsiveness necessary to drive interactive applications is now possible at low cost.  But the results of such research are not easy to use for application developers. We believe that a disruptive project is needed to bridge these two worlds and enable artists and creators to work with real-time person tracking.   OpenPTrack aims to support “creative coders” in the arts, culture, and educational sectors who wish to experiment with real-time person tracking as an input for their applications.
+REQUIREMENTS: 
+* ROS Kinetic
+* CUDA 8 
+* cuDNN 5.1
 
-The project contains numerous state-of-the-art algorithms for RGB and/or depth tracking, and has been created on top of a modular node based architecture, to support the addition and removal of different sensor streams online.
+Installation (for now, just for Kinect v2 sensors, I am assuming ROS workspace is workspace/ros/src inside your home folder):
 
-OpenPTrack is led by UCLA REMAP and Open Perception. Key collaborators include the University of Padova and Electroland. Code is available under a BSD license.  Portions of the work are supported by the National Science Foundation (IIS-1323767).
+1. install libfreenect2 & iai_kinect2
+```bash
+cd
+cd workspace 
+git clone https://github.com/openptrack/libfreenect2
+cd libfreenect2
+git checkout 1604
+cd depends/
+sudo apt-get install -y git cmake cmake-curses-gui libxmu-dev libxi-dev libgl1-mesa-dev dos2unix xorg-dev libglu1-mesa-dev libtool automake libudev-dev libgtk2.0-dev pkg-config libjpeg-turbo8-dev libturbojpeg libglewmx-dev
+./install_ubuntu.sh
+sudo ln -s /usr/lib/x86_64-linux-gnu/libturbojpeg.so.0.1.0 /usr/lib/x86_64-linux-gnu/libturbojpeg.so
+cd ../examples/protonect/
+mkdir build && cd build
+cmake ..
+make -j4
+sudo make install
+echo '# ATTR{product}=="Kinect2"
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02c4", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02d8", MODE="0666"
+SUBSYSTEM=="usb", ATTR{idVendor}=="045e", ATTR{idProduct}=="02d9", MODE="0666"' > ~/90-kinect2.rules
+sudo mv ~/90-kinect2.rules /etc/udev/rules.d/90-kinect2.rules
+cd /home/$USER/workspace/ros/src
+git clone https://github.com/openptrack/iai_kinect2
+cd iai_kinect2
+git checkout 1604
+```
+2. install ceres solver
+```bash
+sudo apt-get install cmake libgoogle-glog-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev -y --force-yes
+mkdir /tmp/ceres_install
+cd /tmp/ceres_install
+git clone https://ceres-solver.googlesource.com/ceres-solver
+cd ceres-solver
+git fetch --tags
+git checkout tags/1.9.0
+cd ..
+mkdir ceres-bin
+cd ceres-bin
+cmake ../ceres-solver
+make -j8
+make test
+sudo make install
+sudo rm -R /tmp/ceres_install
+```
+3. install calibration_toolkit
+``` bash
+cd ~/workspace/ros/src
+git clone https://github.com/iaslab-unipd/calibration_toolkit
+ cd calibration_toolkit
+ git fetch origin --tags
+git checkout tags/v0.2
+```
+4. install rtpose_wrapper (wrapper for openpose)
+```bash
+cd ~/workspace/ros/src
+git clone https://bitbucket.org/mcarraro/rtpose_wrapper
+cd rtpose_wrapper
+git checkout integration
+sudo apt-get --assume-yes install libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev protobuf-compiler libboost-all-dev libgflags-dev libgoogle-glog-dev liblmdb-dev
+make all -j8
+```
+5. install this repository
+```bash
+cd ~/workspace/ros/src
+git clone https://github.com/mcarraro/open_ptrack
+git checkout 14.04
+sudo apt-get install -y ros-indigo-qt-build
+source ~/.bashrc
+cd open_ptrack && git checkout integration
+cd ../..
+```
+6. compile everything!
+```
+cd
+cd workspace/ros
+catkin_make
+```
+7. follow the normal OpenPTrack wiki to set-up the network (taking care about setting to true the enable_pose flag in the .bashrc)
+* [Time Synchronization](https://github.com/OpenPTrack/open_ptrack/wiki/Time-Synchronization)
+* [Pre-calibration](https://github.com/OpenPTrack/open_ptrack/wiki/Pre-Calibration-File-Configuration) - be careful to leave enable_pose: true in the camera_network.yaml
 
-If you use this code, please cite:
 
-M. Munaro, A. Horn, R. Illum, J. Burke and R. B. Rusu. OpenPTrack: People Tracking for Heterogeneous Networks of Color-Depth Cameras. In IAS-13 Workshop Proceedings: 1st Intl. Workshop on 3D Robot Perception with Point Cloud Library, pp. 235-247, Padova, Italy, 2014. 
+POSE ESTIMATION FROM SINGLE CAMERA
+```bash
+roslaunch tracking single_camera_tracking_node.launch enable_pose:=true 
+```
 
-M. Munaro and E. Menegatti. Fast RGB-D people tracking for service robots. Journal on Autonomous Robots, vol. 37(3), pp. 227-242, Springer, 2014. 
+POSE ESTIMATION FROM CAMERA NETWORK
+```bash
+<calibrate the network>
+<from master computer>: roslaunch tracking tracking_node.launch
+<from each detector>: roslaunch detection detection_node_<camera_name>.launch enable_pose:=true
+```
+
+
