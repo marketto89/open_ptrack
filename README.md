@@ -1,7 +1,7 @@
 OpenPTrack fork for the paper:
 Real-time marker-less multi-person 3D pose estimation in RGB-Depth camera networks.
 
-This is for Ubuntu 14.04, if you are interested in the 16.04 please have a look here: https://github.org/marketto89/open_ptrack/tree/16.04
+This is for Ubuntu 14.04, if you are interested in the 16.04 please have a look here: https://github.com/marketto89/open_ptrack/tree/16.04
 
 INSTALLATION INSTRUCTIONS:
 
