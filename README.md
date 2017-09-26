@@ -77,11 +77,11 @@ make all -j8
 5. install this repository
 ```bash
 cd ~/workspace/ros/src
-git clone https://github.com/mcarraro/open_ptrack
-git checkout 14.04
-sudo apt-get install -y ros-indigo-qt-build
+git clone https://github.com/marketto89/open_ptrack
+git checkout 16.04
+sudo apt-get install -y ros-kinetic-qt-build
 source ~/.bashrc
-cd open_ptrack && git checkout integration
+cd open_ptrack && git checkout 16.04
 cd ../..
 ```
 6. compile everything!
