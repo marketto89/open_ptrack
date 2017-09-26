@@ -1,7 +1,7 @@
 OpenPTrack fork for the paper:
 Real-time marker-less multi-person 3D pose estimation in RGB-Depth camera networks.
 
-This is for Ubuntu 14.04, if you are interested in the 16.04 please have a look here: https://bitbucket.org/mcarraro/open_ptrack/src/db8c245f6329f42d046d40205befdf83f810a91b/?at=integration-1604
+This is for Ubuntu 14.04, if you are interested in the 16.04 please have a look here: https://github.org/marketto89/open_ptrack/tree/16.04
 
 INSTALLATION INSTRUCTIONS:
 
@@ -77,7 +77,7 @@ make all -j8
 5. install this repository
 ```bash
 cd ~/workspace/ros/src
-git clone https://github.com/mcarraro/open_ptrack
+git clone https://github.com/marketto89/open_ptrack
 git checkout 14.04
 sudo apt-get install -y ros-indigo-qt-build
 source ~/.bashrc
